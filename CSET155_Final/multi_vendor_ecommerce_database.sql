@@ -11,6 +11,9 @@ CREATE TABLE accounts (
     role enum('vendor', 'user', 'admin') NOT NULL
 );
 
+ALTER TABLE accounts
+MODIFY last_name VARCHAR(50);
+
 CREATE TABLE product (
 	product_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
     name VARCHAR(50) NOT NULL,
@@ -37,11 +40,13 @@ CREATE TABLE vendor_product (
     product_id INT NOT NULL,
 	price DECIMAL(10, 2) NOT NULL,
     available_inventory INT NOT NULL,
-    warrenty_period INT,
     PRIMARY KEY (vendor_id, product_id),
     FOREIGN KEY (vendor_id) REFERENCES accounts(account_id),
     FOREIGN KEY (product_id) REFERENCES product(product_id)
 );
+
+ALTER TABLE vendor_product
+DROP COLUMN warranty_period;
 
 CREATE TABLE vendor_product_sizes (
 	vendor_id INT NOT NULL,
@@ -106,4 +111,35 @@ CREATE TABLE returns (
     status ENUM('pending', 'processing', 'complete', 'rejected', 'confirmed') NOT NULL,
     account_id INT NOT NULL,
     FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+);
+
+CREATE TABLE warranty (
+	warranty_id INT PRIMARY KEY AUTO_INCREMENT,
+    vendor_id INT NOT NULL,
+    product_id INT NOT NULL,
+    duration_months INT NOT NULL,
+    description TEXT,
+    type ENUM ('manufacturer', 'vendor', 'extended'),
+    FOREIGN KEY (vendor_id, product_id) REFERENCES vendor_product(vendor_id, product_id)
+);
+
+CREATE TABLE discounts (
+	discount_id INT PRIMARY KEY AUTO_INCREMENT,
+    vendor_id INT NOT NULL,
+    code varchar(50),
+    percent_off DECIMAL(5, 2),
+    amount_off DECIMAL(10, 2),
+    start_date DATE,
+    end_date DATE,
+    active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (vendor_id) REFERENCES accounts(account_id)
+);
+
+CREATE TABLE discount_product (
+	discount_id INT,
+    vendor_id INT,
+    product_id INT,
+    PRIMARY KEY (discount_id, vendor_id, product_id),
+    FOREIGN KEY (discount_id) REFERENCES discounts(discount_id),
+    FOREIGN KEY (vendor_id, product_id) REFERENCES vendor_product(vendor_id, product_id)
 );
