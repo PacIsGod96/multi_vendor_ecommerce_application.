@@ -246,3 +246,52 @@ INSERT INTO discount_product (discount_id, vendor_id, product_id) VALUES
 (4, 10, 9),
 (4, 10, 10);
 
+- #5: "?" will be new value being checked - 
+SELECT * FROM accounts WHERE username IS NOT NULL;
+INSERT INTO accounts (first_name, last_name, username, password, email_address, role) VALUES ('user', 'create', 'createUser', 'pw', 'email', 'user');
+SELECT * FROM accounts WHERE username = "LoganBurkey" AND password = "password";
+SELECT * FROM accounts WHERE email_address = "logan@robmail.com" AND password = "password";
+INSERT INTO product (name, description, images) VALUES ('product', 'description', 'image');
+INSERT INTO vendor_product (vendor_id, product_id, price, available_inventory) VALUES (8, 69, 20, 200);
+UPDATE product SET name = 'product1', description = 'new', images = 'image1' WHERE product_id = 1;
+UPDATE vendor_product SET price = 70, available_inventory = 180 WHERE vendor_id = 8 AND product_id = 69;
+DELETE FROM product WHERE product_id = 69;
+SELECT * FROM product WHERE name LIKE CONCAT('%', ?, '%');
+SELECT * FROM product WHERE description LIKE CONCAT('%', ?, '%');
+SELECT product.* FROM product JOIN vendor_product  ON product.product_id = vendor_product.product_id WHERE vendor_product.vendor_id = 1;
+SELECT product.* FROM product JOIN product_colors ON product.product_id = product_colors.product_id WHERE product_colors.color = 1;
+SELECT product.* FROM product JOIN product_sizes ON product.product_id = product_sizes.product_id WHERE product_sizes.size = 'large';
+SELECT product.*, vendor_product.available_inventory
+FROM product JOIN vendor_product ON product.product_id = vendor_product.product_id WHERE vendor_product.available_inventory > 0;
+INSERT INTO cart (account_id, product_id, quantity) VALUES (1, 69, 4);
+SELECT * FROM cart WHERE account_id = 1;
+UPDATE cart SET quantity = 10 WHERE cart_item_id = 1;
+DELETE FROM cart WHERE cart_item_id = 1;
+CREATE TABLE wishlist (
+    wishlist_id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT,
+    product_id INT,
+    FOREIGN KEY (account_id) REFERENCES accounts(account_id),
+    FOREIGN KEY (product_id) REFERENCES product(product_id)
+);
+INSERT INTO wishlist (account_id, product_id) VALUES (1, 69);
+SELECT * FROM wishlist WHERE account_id = 1;
+DELETE FROM wishlist WHERE wishlist_id = 1;
+INSERT INTO orders (account_id, date, status, total_price) VALUES (?, CURDATE(), 'pending', ?);
+UPDATE orders SET status = 'confirmed' WHERE order_id = 1;
+UPDATE orders SET status = ? WHERE order_id = 1;
+SELECT SUM(vendor_product.price * cart.quantity) AS total_price FROM cart JOIN vendor_product ON cart.product_id = vendor_product.product_id WHERE cart.account_id = 1;
+INSERT INTO review (name, description, stars, date, account_id, product_id) VALUES ("review", "description", 5, CURDATE(), 1, 69);
+SELECT * FROM review WHERE product_id = 69;
+SELECT * FROM review WHERE account_id = 1;
+SELECT * FROM review ORDER BY date DESC;
+SELECT * FROM review ORDER BY stars DESC;
+UPDATE review SET description = 'desc', stars = 4 WHERE review_id = 1;
+DELETE FROM review WHERE review_id = ?;
+INSERT INTO returns (name, description, date, status, account_id) VALUES ('name', 'desc', CURDATE(), 'pending', 1);
+UPDATE returns SET status = 'pending' WHERE return_id = 1;
+SELECT * FROM returns WHERE account_id = 1;
+SELECT warranty.*, orders.date AS purchase_date, DATE_ADD(orders.date, INTERVAL warranty.duration_months MONTH) AS expiry_date FROM warranty JOIN orders ON orders.account_id = ? WHERE warranty.product_id = ? HAVING CURDATE() <= expiry_date;
+INSERT INTO chat (text, images, account_id) VALUES ('text', 'img', 1);
+SELECT * FROM chat WHERE account_id = 1;
+DELETE FROM chat WHERE chat_id = 1;
