@@ -9,7 +9,11 @@ conn_str = "mysql://root:cset155@localhost/multi_vendor_ecommerce"
 engine = create_engine(conn_str, echo=True)
 conn = engine.connect()
 
-@app.route('/', methods = ['GET'])
+@app.route('/template')
+def view_template():
+    return render_template("template.html")
+
+@app.route('/', methods= ['GET'])
 def login_register():
     return render_template("index.html")
 
@@ -29,7 +33,6 @@ def logout():
 @app.route('/products', methods = ['GET'])
 def products_page():
     return render_template('products.html')
-
 
 @app.route('/cart', methods = ['GET'])
 def cart_page():
