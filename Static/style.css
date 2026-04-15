@@ -1,0 +1,46 @@
+/* 
+dark purple: #391361
+light purple: #9e5ce3  
+medium purple: #914ddb
+*/
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+header {
+    margin: 30px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.header-logo {
+    max-width: 15%;
+}
+
+.cart {
+    display: inline-block;
+    color: #391361;
+    font-size: 2em;
+    margin-top: 15px;
+    margin-right: 20px;
+}
+
+nav ul {
+    list-style-type: none;
+    border-top: 2px solid #391361;
+    border-bottom: 2px solid #391361;
+    color: #391361;
+    display: flex;
+    justify-content: space-around;
+}
+
+nav ul li {
+    margin: 8px 0;
+}
+
+footer {
+    border-top: 4px solid #391361;
+}
