@@ -17,7 +17,7 @@ def view_template():
 def login_register():
     return render_template("index.html")
 
-@app.route('/', methods= ['POST'])
+@app.route('/', methods = ['POST'])
 def register_post():
     return render_template('index.html')
 
@@ -37,6 +37,22 @@ def products_page():
 @app.route('/cart', methods = ['GET'])
 def cart_page():
     return render_template('cart.html')
+
+@app.route('/account', methods = ['GET'])
+def account_page():
+    return render_template('account.html')
+
+@app.route('/admin_compliant', methods = ['GET'])
+def admin_complaint_page():
+    return render_template('adminComplaint.html')
+
+@app.route('/vendor_chat', methods = ['GET'])
+def vendor_chat_page():
+    return render_template('vendorChat.html')
+
+@app.route('/admin_confirm_order', methods = ['GET'])
+def admin_confirm_order_page():
+    return render_template('adminConfirmOrder')
 
 if __name__ == '__main__':
     app.run(debug=True)
