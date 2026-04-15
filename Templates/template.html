@@ -3,22 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <title>Dripster</title>
 </head>
 <body>
     <header>
         <div>
-            <img src="{{ url_for('static', filename='Images/logo.png') }}" alt="app logo">
+            <img src="{{ url_for('static', filename='Images/logo.png') }}" alt="app logo" class="header-logo">
         </div>
+            <i class="fa-solid fa-cart-shopping cart"></i>
     </header>
     <nav>
-
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="">Account</a></li>
+            <li><a href="">Products</a></li>
+            <li><a href="">Complaints</a></li>
+            <li><a href="">Orders</a></li>
+            <li><a href="">Chat</a></li>
+        </ul>
     </nav>
     <main>
 
     </main>
     <footer>
-
+        <p>footer</p>
     </footer>
 </body>
 </html>
