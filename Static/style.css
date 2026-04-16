@@ -8,6 +8,7 @@ medium purple: #914ddb
     margin: 0;
     padding: 0;
     border: 0;
+    font-family: "Varela Round", sans-serif;
 }
 
 header {
@@ -28,11 +29,14 @@ header {
     margin-right: 20px;
 }
 
+.cart:hover {
+    cursor: pointer;
+}
+
 nav ul {
     list-style-type: none;
-    border-top: 2px solid #391361;
-    border-bottom: 2px solid #391361;
-    color: #391361;
+    border-top: 3px solid #391361;
+    border-bottom: 3px solid #391361;
     display: flex;
     justify-content: space-around;
 }
@@ -41,6 +45,78 @@ nav ul li {
     margin: 8px 0;
 }
 
+nav ul li a {
+    color: #391361;
+    text-decoration: none;
+    transition-duration: 3s;
+    font-weight: 600;
+}
+
+nav ul li:hover {
+    text-decoration: underline;
+    transition-duration: 3s;
+    font-weight: bold;
+}
+
+#complaints-link, #orders-link, #chat-link {
+    display: none;
+}
+
+main {
+    margin: 40px 0;
+}
+
 footer {
-    border-top: 4px solid #391361;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    border-top: 3px solid #391361;
+    margin-bottom: 20px;
+}
+
+.copy {
+    margin-top: 30px;
+    margin-bottom: 10px;
+}  
+
+.footer-grid {
+    display: flex;
+    justify-content: space-around;
+    margin: 0 15%;
+}
+
+.footer-logo {
+    width: 125px;
+}
+
+.footer-grid div ul {
+    list-style-type: none;
+    margin-top: 24px;
+}
+
+.footer-grid div ul li a {
+    text-align: center;
+    display: block;
+    color: #391361;
+    margin: 14px 0;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-grid div ul li a:hover {
+    text-decoration: underline;
+}
+
+/* misc */
+
+.center {
+    margin: 0 auto;
+}
+
+.center-txt {
+    text-align: center;
+}
+
+.bold {
+    font-weight: bold;
 }
