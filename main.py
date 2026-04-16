@@ -46,11 +46,11 @@ def send_review_complaint():
 def send_chat():
     return render_template('products.html')
 
-@app.route('/update_product', ['POST']) #Handles sending updated informartion 
+@app.route('/update_product', methods = ['POST']) #Handles sending updated informartion 
 def update_product():
     return render_template('products.html')
 
-@app.route('delete_product', ['POST']) #Handles deleting the product 
+@app.route('/delete_product', methods = ['POST']) #Handles deleting the product 
 def delete_product():
     return render_template('product.html')
 
