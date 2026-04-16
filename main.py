@@ -9,7 +9,11 @@ conn_str = "mysql://root:cset155@localhost/multi_vendor_ecommerce"
 engine = create_engine(conn_str, echo=True)
 conn = engine.connect()
 
-@app.route('/', methods = ['GET']) #Handles getting the login/signup page 
+@app.route('/template')
+def view_template():
+    return render_template("template.html")
+
+@app.route('/', methods= ['GET']) #Handles getting the login/register page
 def login_register():
     return render_template("index.html")
 
