@@ -32,7 +32,9 @@ def logout():
 
 @app.route('/products', methods = ['GET']) #Handles getting all of the products and their info
 def products_page():
-    return render_template('products.html')
+    vendors = conn.execute(
+        text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")).fetchall()
+    return render_template('products.html', vendors=vendors)
 
 @app.route('/add_to_cart', methods = ['POST']) #Handles adding the product to the cart
 def add_to_cart():
