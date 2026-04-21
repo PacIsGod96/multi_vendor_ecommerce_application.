@@ -1,0 +1,54 @@
+{% extends "template.html" %}
+
+{% block title %}Products Page{% endblock %}
+
+{% block content %}
+<h2 class="center-txt">Our Products</h2>
+<div class="products-main-grid">
+    <div>
+        <p class="filter_title">Filters:</p>
+        <label for="vendor_sort">Vendor:</label>
+        <select id="vendor_sort" name="vendor_sort">
+            {% for vendor in vendors %}
+                <option value="{{ vendor.account_id }}">{{ vendor.username }}</option>
+            {% endfor %}
+        </select><br>
+        <button onclick="resetProducts()" id="product-reset">Reset</button><br>
+    </div>
+    <div class="products">
+        <div>
+            <p>Urban Drip Co.</p>
+        </div>
+        <div>
+            <p>PrimeWear Outlet</p>
+        </div>
+        <div>
+            <p>Drip Syndicate</p>
+        </div>
+        <div>
+            <p>Drip Market</p>
+        </div>
+        <div>
+            <p>Tommy Hillflopper</p>
+        </div>
+        <div>
+            <p>Laundry Goblins</p>
+        </div>
+        <div>
+            <p>MoistFabricz</p>
+        </div>
+        <div>
+            <p>ShirtBurglar</p>
+        </div>
+        <div>
+            <p>SwagStretcher</p>
+        </div>
+        <div>
+            <p>Sir Pants-A-Lot</p>
+        </div>
+        <div>
+            <p>SockGremlinz</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

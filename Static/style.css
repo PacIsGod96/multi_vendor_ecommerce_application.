@@ -1,0 +1,150 @@
+/* 
+dark purple: #391361
+light purple: #9e5ce3  
+medium purple: #914ddb
+*/
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: "Varela Round", sans-serif;
+}
+
+header {
+    margin: 30px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.header-logo {
+    max-width: 15%;
+}
+
+.cart {
+    display: inline-block;
+    color: #391361;
+    font-size: 2em;
+    margin-top: 15px;
+    margin-right: 20px;
+}
+
+.cart:hover {
+    cursor: pointer;
+}
+
+nav ul {
+    list-style-type: none;
+    border-top: 3px solid #391361;
+    border-bottom: 3px solid #391361;
+    display: flex;
+    justify-content: space-around;
+}
+
+nav ul li {
+    margin: 8px 0;
+}
+
+nav ul li a {
+    color: #391361;
+    text-decoration: none;
+    transition-duration: 3s;
+    font-weight: 600;
+}
+
+nav ul li:hover {
+    text-decoration: underline;
+    transition-duration: 3s;
+    font-weight: bold;
+}
+
+#complaints-link, #orders-link, #chat-link {
+    display: none;
+}
+
+main {
+    margin: 40px;
+}
+
+.filter_title {
+    font-size: 1.5em;
+}
+
+.products-main-grid {
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+.products {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 26px;
+}
+
+#product-reset {
+    background-color: #fff;
+    margin: 30px 0;
+    border: 2px solid #391361;
+    padding: 10px 20px;
+    border-radius: 12px;
+    color: #391361;
+}
+
+#product-reset:hover {
+    cursor: pointer;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    border-top: 3px solid #391361;
+    margin-bottom: 20px;
+}
+
+.copy {
+    margin-top: 30px;
+    margin-bottom: 10px;
+}  
+
+.footer-grid {
+    display: flex;
+    justify-content: space-around;
+    margin: 0 15%;
+}
+
+.footer-logo {
+    width: 125px;
+}
+
+.footer-grid div ul {
+    list-style-type: none;
+    margin-top: 24px;
+}
+
+.footer-grid div ul li a {
+    text-align: center;
+    display: block;
+    color: #391361;
+    margin: 14px 0;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-grid div ul li a:hover {
+    text-decoration: underline;
+}
+
+/* misc */
+
+.center {
+    margin: 0 auto;
+}
+
+.center-txt {
+    text-align: center;
+}
+
+.bold {
+    font-weight: bold;
+}

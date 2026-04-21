@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+    <title>Dripster</title>
+</head>
+<body>
+    <header>
+        <div>
+            <img src="{{ url_for('static', filename='Images/logo.png') }}" alt="app logo" class="header-logo">
+        </div>
+            <i class="fa-solid fa-cart-shopping cart"></i>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/products">Products</a></li>
+            <li><a href="/account">Account</a></li>
+            <li id="complaints-link"><a href="/admin_compliant">Complaints</a></li>
+            <li id="orders-link"><a href="/admin_confirm_order">Orders</a></li>
+            <li id="chat-link"><a href="/vender_chat">Chat</a></li>
+        </ul>
+    </nav>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer>
+        <p class="copy center-txt">Copyright &copy; 2026. All Rights Reserved.</p>
+        <div class="footer-grid">
+            <div>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">Products</a></li>
+                    <li><a href="/account">Account</a></li>
+                </ul>
+            </div>
+            <div>
+                <img src="static/Images/footer_logo.png" alt="footer logo" class="footer-logo">
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
