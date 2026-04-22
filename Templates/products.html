@@ -4,8 +4,15 @@
 
 {% block content %}
 <h2 class="center-txt">Our Products</h2>
+<div class="pop-up">
+    <img src='static/Images/Drip Market/Drip Plaza Tee.jpg' alt="product">
+    <p>Drip Plaza Tee</p>
+    <p class='product-vender-name'>By Drip Market</p>
+    <p>$16.99</p>
+</div>
 <div class="products-main-grid">
     <div>
+        {# {% if session.get('username') %} #}
         <p class="filter_title">Filters:</p>
         <label for="vendor_sort">Vendor:</label>
         <select id="vendor_sort" name="vendor_sort">
@@ -14,10 +21,28 @@
             {% endfor %}
         </select><br>
         <button onclick="resetProducts()" id="product-reset">Reset</button><br>
+        {# {% endif %} #}
+        {# {% if session.get('username') %} #}
+        <a class="add-product-btn">Add Product</a>
+        {# {% endif %} #}
     </div>
     <div class="products">
         <div>
-            <p>Urban Drip Co.</p>
+            <img src='static/Images/Drip Market/Drip Plaza Tee.jpg' alt="product">
+            <p>Drip Plaza Tee</p>
+            <p class='product-vender-name'>By Drip Market</p>
+            <div class="product-btn-grid">
+                <p>$16.99</p>
+                {# {% if session.get('username') %} #}
+                <a>Add To Cart</a>
+                {# {% endif %} #}
+            </div>
+            {# {% if session.get('username') %} #}
+            <div class="product-btn-grid">
+                <a>Edit Product</a>
+                <a>Delete Product</a>
+            </div>
+            {# {% endif %} #}
         </div>
         <div>
             <p>PrimeWear Outlet</p>
