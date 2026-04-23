@@ -3,4 +3,59 @@
 {% block title %}Login/Register{% endblock %}
 
 {% block content %}
+<div class="login_register_div">
+    <div class="panel_container" id="panelContainer">
+        <div class="login_div panel">
+            <div class="login_label">
+                <h1>Login</h1>
+            </div>
+            <form action="/login" id="login_form" method="POST">
+                <div class="login_info">
+                    <label>Username</label>
+                    <input type="text" placeholder="username" name="login_username">
+                </div>
+                <div class="login_info">
+                    <label>Password</label>
+                    <input type="text" placeholder="password" name="login_password">
+                </div>
+                <div class="panel_button">
+                    <button type="button">Login</button>
+                </div>
+            </form>
+            <p onclick="showRegister()" class="switch">Register?</p>
+        </div>
+        <div class="register_div panel">
+            <div class="regsiter_label">
+                <h1>Register</h1>
+            </div>
+            <form action="/register" class="register_info" id="signupForm" method="POST" onsubmit="return handlesSignUpSubmit(event)">
+                <label>Username</label>
+                <input type="text" placeholder="username" name="register_username">
+
+                <label>Password</label>
+                <input type="text" placeholder="password" name="register_password">
+
+                <label>First Name</label>
+                <input type="text" placeholder="first name" name="register_first_name">
+
+                <label>Last Name</label>
+                <input type="text" placeholder="last name" name="register_last_name">
+
+                <label>Email</label>
+                <input type="text" placeholder="email" name="register_email">
+
+                <label>Role</label>
+                <select name="register_role" id="register_role">
+                    <option value="user">User</option>
+                    <option value="vendor">Vendor</option>
+                </select>
+                <div class="panel_button">
+                    <button type="submit">Register</button>
+                </div>
+            </form>
+
+            <p onclick="showLogin()" class="switch">Back to Login</p>
+        </div>
+    </div>
+</div>
 {% endblock %}
