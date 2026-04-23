@@ -95,8 +95,6 @@ main {
 }
 
 footer {
-    position: absolute;
-    bottom: 0;
     width: 100%;
     border-top: 3px solid #391361;
     margin-bottom: 20px;
@@ -204,4 +202,75 @@ footer {
     cursor: pointer;
     font-weight: bold;
     align-self: flex-end;
+}
+
+#img {
+    width: 120px;
+    float: left;
+}
+
+.cart-img {
+    width: 120px;     
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #914ddb;
+    margin-bottom: 10px;
+}
+
+/* .hidden {
+    display: none;
+}
+
+.visible {
+    display: block;
+} */
+
+.confirm-box {
+    width: 70%;
+    margin: 25px auto;
+    background: #ffffff;
+    border: 3px solid #391361;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.confirm-box input,
+.confirm-box select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 15px 0;
+    border: 2px solid #914ddb;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.center-txt {
+    text-align: center;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.admin-order-item {
+    background: #fff;
+    border: 3px solid #391361;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.checkout-btn {
+    background-color: #391361;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid #391361;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.checkout-btn:hover {
+    transform: scale(1.05);
 }
