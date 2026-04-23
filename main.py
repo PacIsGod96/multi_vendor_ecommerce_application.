@@ -34,6 +34,10 @@ def logout():
 def products_page():
     return render_template('products.html')
 
+@app.route('/add_product', methods = ['POST'])
+def add_product():
+    return render_template('products.html')
+
 @app.route('/add_to_cart', methods = ['POST']) #Handles adding the product to the cart
 def add_to_cart():
     return render_template('products.html')
@@ -52,7 +56,7 @@ def update_product():
 
 @app.route('/delete_product', methods = ['POST']) #Handles deleting the product 
 def delete_product():
-    return render_template('product.html')
+    return render_template('products.html')
 
 @app.route('/cart', methods = ['GET', 'POST']) #Handles grabbing all the cart infrmation and sending the order to the admins
 def cart_page():
@@ -60,7 +64,7 @@ def cart_page():
 
 @app.route('/account', methods = ['GET', 'POST']) #Handles getting the account info and sending new info if you chnage something in the account
 def account_page():
-    return render_template('cart.html')
+    return render_template('account.html')
 
 @app.route('/admin_compliant', methods = ['GET', 'POST']) #Handles getting the reviews/complaints and sending the repsonse back to the customer
 def admin_complaint_page():

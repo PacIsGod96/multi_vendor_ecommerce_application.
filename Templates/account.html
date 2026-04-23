@@ -1,6 +1,52 @@
-{% extends "template.html"}
+{% extends "template.html" %}
 
 {% block title %}My Account{% endblock %}
 
 {% block content %}
+<div class="account_div">
+    <div class="account_label">
+        <h1>Account</h1>
+    </div>
+    <form action="/account" id="account_form" method="POST">
+        <div class="row_one">
+            <div class="field">
+                <label>Username</label>
+                <input type="text" name="account_username" id="account_username" readonly>
+                <button type="button" onclick="toggleEdit('account_username')">Edit</button>
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="text" name="account_password" id="account_password" readonly>
+                <button type="button" onclick="toggleEdit('account_password')">Edit</button>
+            </div>
+
+            <div class="field">
+                <label>Email</label>
+                <input type="text" name="account_email" id="account_email" readonly>
+                <button type="button" onclick="toggleEdit('account_email')">Edit</button>
+            </div>
+        </div>
+        <div class="row_two">
+            <div class="field">
+                <label>First Name</label>
+                <input type="text" name="account_first_name" id="account_first_name" readonly>
+                <button type="button" onclick="toggleEdit('account_first_name')">Edit</button>
+            </div>
+
+            <div class="field">
+                <label>Last Name</label>
+                <input type="text" name="account_last_name" id="account_last_name" readonly>
+                <button type="button" onclick="toggleEdit('account_last_name')">Edit</button>
+            </div>
+        
+            <div class="field">
+                <label>Role</label>
+                <input type="text" name="account_role" id="account_role">
+            </div>
+        </div>
+        <div class="form_actions">
+            <button type="submit">Save Changes</button>
+        </div>
+    </form>
+</div>
 {% endblock %}

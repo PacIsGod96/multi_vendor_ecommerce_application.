@@ -107,6 +107,201 @@ footer {
     text-decoration: underline;
 }
 
+/* login/register */
+.login_register_div {
+    width: 400px;
+    height: 500px;
+    border: 3px solid #391361;
+    border-radius: 25px;
+    overflow: hidden;
+    margin: auto;
+    position: relative;
+}
+
+.panel_button {
+    display: flex;
+    justify-content: center;
+}
+
+.login_register_div button {
+    margin-top: 20px;
+    width: 150px;
+    height: 50px;
+    background-color: white;
+    border: 2px #391361 solid;
+    border-radius: 15px;
+    color: #391361;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.login_register_div button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.panel_container {
+    display: flex;
+    width: 800px;
+    transition: transform 0.5s ease;
+    transform: translateX(0);
+}
+
+.panel_container.show-signup {
+    transform: translateX(-400px);
+}
+
+.panel {
+    width: 400px;
+    height: 500px;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 3px;
+}
+
+.panel::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+.panel h1 {
+    font-size: 50px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #391361;
+}
+
+.panel label{
+    display: block;
+    margin-top: 10px;
+    font-size: 18px;
+}
+
+.panel input {
+    width: 100%;
+    height: 50px;
+    border: 2px solid #391361;
+    border-radius: 10px;
+    padding-left: 5px;
+    margin-top: 5px;
+}
+
+.switch {
+    margin-top: 20px;
+    text-decoration: underline;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    color: blue;
+}
+
+.switch:hover {
+    color: darkblue;
+}
+
+/* account */
+.account_div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 40px 20px;
+}
+
+.account_label {
+    margin-bottom: 20px;
+    text-align: center;
+    color: #391361;
+}
+
+#account_form {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.row_one,
+.row_two {
+    display: flex;
+    justify-content: space-between;
+    gap: 100px;
+    flex-wrap: wrap;
+}
+
+.row_one > div,
+.row_two >div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
+    min-width: 180px;
+}
+
+#account_form label {
+    margin-bottom: 6px;
+}
+
+#account_form input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 2px solid #391361;
+    border-radius: 6px;
+}
+
+#account_form button[type="button"] {
+    margin-top: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 2px solid #391361;
+    border-radius: 5px;
+    background-color: white;
+    color: #391361;
+}
+
+#account_form button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#account_form button:hover {
+    font-size: medium;
+}
+
+.form_actions {
+    display: flex;
+    justify-content: center;
+}
+
+.form_actions button {
+    width: 150px;
+    height: 50px;
+    border: 2px solid #391361;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: white;
+    color: #391361;
+}
+
+/* vendor_chat */
+.vendor_inbox {
+    margin: 15px;
+    border: 3px solid #391361;
+    border-radius: 25px;
+    height: 500px;
+    width: 500px;
+}
+
+
+
 /* misc */
 
 .center {
