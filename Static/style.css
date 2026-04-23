@@ -110,7 +110,7 @@ main {
     text-indent: 30px
 }
 
-.products div .product-vender-name {
+.products div .product-vender-name, .product-vender-name {
     font-size: .75em;
     margin-bottom: 8px
 }
@@ -156,6 +156,7 @@ main {
 }
 
 .pop-up {
+    display: block;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -163,8 +164,8 @@ main {
     z-index: 10;
     background-color: #fff;
     border: 4px solid #391361;
-    width: 50%;
-    height: 50%;
+    width: 20%;
+    height: 55%;
     border-radius: 20px;
     padding: 25px;
 }
@@ -173,13 +174,40 @@ main {
     display: block;
     width: 300px;
     margin-bottom: 20px;
+    padding: 0 20px;
 }
 
+.pop-up-carosel {
+    display: flex;
+    justify-content: space-between;
+    width: 320px;
+    overflow-x: scroll;
+    margin-bottom: 16px;
+}
+
+.pop-up-grid {
+    display: flex;
+    justify-content: space-between;
+    width: 400px;
+}
+
+.confirm {
+    display: block;
+    margin: 0 auto;
+    background-color: #fff;
+    border: 2px solid #391361;
+    padding: 10px 20px;
+    margin-top: -20px;
+    border-radius: 18px;
+    cursor: pointer;
+}
+
+.confirm:active {
+    background-color: #391361;
+    color: #fff;
+}
 
 footer {
-    /* position: absolute;
-    bottom: 0;
-    width: 100%; */
     border-top: 3px solid #391361;
     margin-bottom: 20px;
 }
