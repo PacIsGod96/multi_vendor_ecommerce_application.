@@ -3,4 +3,45 @@
 {% block title %}Cart{% endblock %}
 
 {% block content %}
+
+<h1 class="center-txt bold cart-title">Your Shopping Cart</h1>
+
+<div class="cart-grid">
+
+    
+    <div class="cart-item">
+        <div class="cart-info">
+            <h2 class="cart-name">Sample Product</h2>
+            <p class="cart-vendor">Vendor: Example Vendor</p>
+            <p class="cart-price">$12</p>
+        </div>
+        <button class="remove-btn">Remove</button>
+    </div>
+
+    
+    <div class="cart-item">
+        <div class="cart-info">
+            <h2 class="cart-name">Sample Product</h2>
+            <p class="cart-vendor">Vendor: Example Vendor</p>
+            <p class="cart-price">$10</p>
+        </div>
+        <button class="remove-btn">Remove</button>
+    </div>
+
+    <div class="cart-item">
+        <div class="cart-info">
+            <h2 class="cart-name">Sample Product</h2>
+            <p class="cart-vendor">Vendor: Example Vendor</p>
+            <p class="cart-price">$67</p>
+        </div>
+        <button class="remove-btn">Remove</button>
+    </div>
+
+</div>
+
+<div class="cart-total-box center-txt">
+    <h2 class="cart-total">Total: $69</h2>
+    <button class="checkout-btn">Checkout</button>
+</div>
+
 {% endblock %}
