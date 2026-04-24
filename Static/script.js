@@ -41,3 +41,101 @@ function toggleEdit(id) {
     }
 }
 
+// =========================
+// CART → CONFIRM → ADMIN
+// =========================
+
+function showConfirm() {
+    document.getElementById("cartPage").classList.add("hidden");
+    document.getElementById("confirmOrderPage").classList.remove("hidden");
+
+    fillConfirmSummary();
+}
+
+function showAdmin() {
+    document.getElementById("confirmOrderPage").classList.add("hidden");
+    document.getElementById("adminOrderQueue").classList.remove("hidden");
+
+    fillAdminOrder();
+}
+
+
+// =========================
+// REMOVE ITEMS
+// =========================
+
+function attachRemoveButtons() {
+    document.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            this.parentElement.remove();
+            updateTotal();
+        });
+    });
+}
+
+attachRemoveButtons();
+
+function updateTotal() {
+    let total = 0;
+
+    document.querySelectorAll(".cart-price").forEach(p => {
+        total += parseFloat(p.textContent.replace("$", ""));
+    });
+
+    document.getElementById("cartTotal").textContent = "Total: $" + total;
+}
+
+
+// =========================
+// CONFIRM PAGE SUMMARY
+// =========================
+
+function fillConfirmSummary() {
+    const items = document.querySelectorAll("#cartItems .cart-item");
+    const summary = document.getElementById("confirmSummary");
+
+    let html = "<h3>Order Summary</h3>";
+    let total = 0;
+
+    items.forEach(item => {
+        const name = item.querySelector(".cart-name").textContent;
+        const price = item.querySelector(".cart-price").textContent.replace("$", "");
+        total += parseFloat(price);
+
+        html += `<p>${name} — $${price}</p>`;
+    });
+
+    html += `<h3>Total: $${total}</h3>`;
+    summary.innerHTML = html;
+}
+
+function fillAdminOrder() {
+    const name = document.getElementById("confirmName").value;
+    const email = document.getElementById("confirmEmail").value;
+    const address = document.getElementById("confirmAddress").value;
+
+    const items = document.querySelectorAll("#cartItems .cart-item");
+
+    let total = 0;
+    let itemsHTML = "";
+
+    items.forEach(item => {
+        const itemName = item.querySelector(".cart-name").textContent;
+        const price = item.querySelector(".cart-price").textContent.replace("$", "");
+        total += parseFloat(price);
+
+        itemsHTML += `<p>- ${itemName}</p>`;
+    });
+
+    document.getElementById("adminOrderBox").innerHTML = `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Address:</strong> ${address}</p>
+        <p><strong>Total:</strong> $${total}</p>
+
+        <h4>Items:</h4>
+        ${itemsHTML}
+
+        <button class="checkout-btn">Approve</button>
+    `;
+}

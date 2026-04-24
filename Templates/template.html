@@ -16,7 +16,10 @@
             <img src="{{ url_for('static', filename='Images/logo.png') }}" alt="app logo" class="header-logo">
         </div>
         {# {% if session.get('username') %} #}
-            <i class="fa-solid fa-cart-shopping cart"></i>
+            <a href="/cart">
+    <i class="fa-solid fa-cart-shopping cart"></i>
+</a>
+            <button>Log Out</button>
         {# {% endif %} #}
     </header>
     {# {% if session.get('username') %} #}
