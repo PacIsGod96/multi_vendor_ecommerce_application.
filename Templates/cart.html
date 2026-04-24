@@ -4,49 +4,31 @@
 
 <h1 class="center-txt bold cart-title">Your Shopping Cart</h1>
 
-
 <section id="cartPage" class="visible">
 
     <div class="cart-grid">
 
+        {% for item in cart %}
         <div class="cart-item">
             <div class="cart-info">
-                <h2 class="cart-name">Sample Product</h2>
+                <h2 class="cart-name">{{ item.name }}</h2>
                 <img class="cart-img" src="{{ url_for('static', filename='Images/TripleT.png') }}" alt="">
-                <p class="cart-vendor">Vendor: Example Vendor</p>
-                <p class="cart-price">$12</p>
+                <p class="cart-vendor">Vendor: {{ item.vendor }}</p>
+                <p class="cart-price">${{ item.price }}</p>
             </div>
             <button class="remove-btn">Remove</button>
         </div>
-
-        <div class="cart-item">
-            <div class="cart-info">
-                <h2 class="cart-name">Sample Product</h2>
-                <img class="cart-img" src="{{ url_for('static', filename='Images/TripleT.png') }}" alt="">
-                <p class="cart-vendor">Vendor: Example Vendor</p>
-                <p class="cart-price">$10</p>
-            </div>
-            <button class="remove-btn">Remove</button>
-        </div>
-
-        <div class="cart-item">
-            <div class="cart-info">
-                <h2 class="cart-name">Sample Product</h2>
-                <img class="cart-img" src="{{ url_for('static', filename='Images/TripleT.png') }}" alt="">
-                <p class="cart-vendor">Vendor: Example Vendor</p>
-                <p class="cart-price">$67</p>
-            </div>
-            <button class="remove-btn">Remove</button>
-        </div>
+        {% endfor %}
 
     </div>
 
     <div class="cart-total-box center-txt">
-        <h2 class="cart-total">Total: $69</h2>
+        <h2 class="cart-total">Total: ${{ total }}</h2>
         <button class="checkout-btn" onclick="showConfirm()">Confirm Order</button>
     </div>
 
 </section>
+
 
 <section id="confirmOrderPage" class="hidden">
 
@@ -54,52 +36,65 @@
 
     <div class="confirm-box">
         <h3>Order Summary</h3>
-        <p>Sample Product — $12</p>
-        <p>Sample Product — $10</p>
-        <p>Sample Product — $67</p>
 
-        <h3>Total: $69</h3>
+        {% for item in cart %}
+        <p>{{ item.name }} — ${{ item.price }}</p>
+        {% endfor %}
+
+        <h3>Total: ${{ total }}</h3>
     </div>
 
     <div class="confirm-box">
         <h3>Your Information</h3>
 
-        <label>Full Name</label>
-        <input type="text" placeholder="your name">
+        <form action="/submit_order" method="POST">
 
-        <label>Email</label>
-        <input type="email" placeholder="your email">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="your name">
 
-        <label>Address</label>
-        <input type="text" placeholder="your address, City, ZIP">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="your email">
 
-        <label>Payment Method</label>
-        <select>
-            <option value="card">Credit/Debit Card</option>
-        </select>
+            <label>Address</label>
+            <input type="text" name="address" placeholder="your address, City, ZIP">
 
-        <button class="checkout-btn" onclick="showAdmin()">Submit Order</button>
+            <label>Payment Method</label>
+            <select name="payment">
+                <option value="card">Credit/Debit Card</option>
+            </select>
+
+            <button class="checkout-btn" type="submit">Submit Order</button>
+
+        </form>
     </div>
 
 </section>
+
 
 <section id="adminOrderQueue" class="hidden">
 
     <h2 class="center-txt bold">Pending Orders</h2>
 
+    {% for order in orders %}
     <div class="confirm-box">
-        <p><strong>Name:</strong> Your Name</p>
-        <p><strong>Email:</strong> Your Email</p>
-        <p><strong>Address:</strong> Your Address</p>
-        <p><strong>Total:</strong> $69</p>
+
+        <p><strong>Name:</strong> {{ order.name }}</p>
+        <p><strong>Email:</strong> {{ order.email }}</p>
+        <p><strong>Address:</strong> {{ order.address }}</p>
+        <p><strong>Total:</strong> ${{ order.total }}</p>
 
         <h4>Items:</h4>
-        <p>- Sample Product</p>
-        <p>- Sample Product</p>
-        <p>- Sample Product</p>
 
-        <button class="checkout-btn">Approve</button>
+        {% for item in order.items %}
+        <p>- {{ item.name }}</p>
+        {% endfor %}
+
+        <form action="/approve_order/{{ order.id }}" method="POST">
+            <button class="checkout-btn" type="submit">Approve</button>
+        </form>
+
     </div>
+    {% endfor %}
 
 </section>
 
