@@ -95,9 +95,6 @@ main {
 }
 
 footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
     border-top: 3px solid #391361;
     margin-bottom: 20px;
 }
@@ -320,15 +317,142 @@ footer {
 }
 
 /* vendor_chat */
+.vendor_chat_panels {
+    display: flex;
+    height: 80vh;
+    gap: 20px;
+    padding: 20px;
+    align-items: stretch;
+}
+
 .vendor_inbox {
-    margin: 15px;
+    width: 30%;
     border: 3px solid #391361;
-    border-radius: 25px;
-    height: 500px;
-    width: 500px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.vendor_inbox_label {
+    font-size: large;
+    color: #391361;
+    text-align: center;
+    margin-top: 10px;
+    text-decoration: underline;
+}
+
+.vendor_chat_box {
+    width: 70%;
+    border: 3px solid #391361;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+    position: relative;
+
+    overflow: hidden;
+}
+
+.vendor_chat_box.active {
+    background-color: white;
+}
+
+.vendor_inbox_list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.chat_item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.chat_item:hover {
+    background-color: #f3f0f8;
+}
+
+.chat_item.active {
+    background-color: #dcd2f5;
+    font-weight: bold;
+}
+
+.chat_placeholder {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: gray;
+    font-size: 20px;
+    font-weight: 500;
 }
 
 
+.hidden {
+    display: none !important;
+}
+
+.chat_content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: white;
+}
+
+.chat_messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.message {
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 60%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+.customer {
+    background-color: #e5e5ea;
+    align-self: flex-start;
+}
+
+.vendor {
+    background-color: #391361;
+    color: white;
+    align-self: flex-end;
+}
+
+.chat_input_bar {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+}
+
+.chat_input_bar input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+}
+
+.chat_input_bar button {
+    margin-left: 10px;
+    padding: 10px 15px;
+    border: none;
+    background-color: #391361;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
 
 /* misc */
 
@@ -343,7 +467,8 @@ footer {
 .bold {
     font-weight: bold;
 }
-/* Logan css */
+
+/* cart */
 .cart-grid {
     width: 90%;
     margin: 30px auto;

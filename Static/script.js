@@ -1,4 +1,4 @@
-const loginform = document.getElementById('login_form')
+const loginform = document.getElementById('login_form');
 
 loginform.addEventListener('submit', () => {
     setTimeout(() => {
@@ -40,3 +40,4 @@ function toggleEdit(id) {
         input.setAttribute("readonly", true)
     }
 }
+
