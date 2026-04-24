@@ -581,3 +581,67 @@ footer {
 .checkout-btn:hover {
     transform: scale(1.05);
 }
+
+.admin-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 40px;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pending-orders,
+.confirm-box-admin {
+    width: 50%;
+    padding: 25px;
+    border: 3px solid #391361; 
+    border-radius: 18px;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+.pending-orders h2,
+.confirm-box-admin h2 {
+    color: #391361;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Order card */
+.order-item {
+    padding: 18px;
+    border: 3px solid #914ddb;    
+    border-radius: 14px;
+    background: #f7f0ff;              
+    cursor: grab;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.order-item:hover {
+    transform: scale(1.03);
+}
+
+.order-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.97);
+}
+
+/* Confirm drop zone */
+.confirm-box-admin {
+    min-height: 350px;
+    background: #f0fff0;
+    border: 3px dashed #2e8b57;
+
+#confirmedOrders .order-item {
+    background: #d4ffd4;              
+    border-color: #2e8b57;
+}
+}
