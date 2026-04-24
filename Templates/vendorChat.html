@@ -7,12 +7,34 @@
     <form action="/vendor_chat" id="vendor_chat_form" method="POST">
         <div class="vendor_chat_panels">
             <div class="vendor_inbox">
-
+                <div class="vendor_inbox_label">
+                    <h1>Inbox</h1>
+                </div>
+                <div class="vendor_inbox_list">
+                    <div class="chat_item">Dave</div>
+                    <div class="chat_item">Lisa</div>
+                </div>
             </div>
             <div class="vendor_chat_box">
-                
+                <div class="chat_placeholder" id="chatPlaceholder">
+                    Select Chat
+                </div>
+
+                <div class="chat_content hidden" id="chatContent">
+
+                    <div class="chat_messages">
+                        
+                    </div>
+
+                    <div class="chat_input_bar">
+                        <input type="text" placeholder="Type a message...">
+                        <button type="button">Send</button>
+                    </div>
+
+                </div>
             </div>
         </div>
     </form>
+    <script src="{{ url_for('static', filename='chats.js')}}"></script>
 </div>
 {% endblock %}

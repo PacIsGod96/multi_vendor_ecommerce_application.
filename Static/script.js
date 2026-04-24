@@ -1,4 +1,4 @@
-const loginform = document.getElementById('login_form')
+const loginform = document.getElementById('login_form');
 
 loginform.addEventListener('submit', () => {
     setTimeout(() => {
