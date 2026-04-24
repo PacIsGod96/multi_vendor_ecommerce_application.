@@ -1,47 +1,106 @@
 {% extends "template.html" %}
 
-{% block title %}Cart{% endblock %}
-
 {% block content %}
 
 <h1 class="center-txt bold cart-title">Your Shopping Cart</h1>
 
-<div class="cart-grid">
 
-    
-    <div class="cart-item">
-        <div class="cart-info">
-            <h2 class="cart-name">Sample Product</h2>
-            <p class="cart-vendor">Vendor: Example Vendor</p>
-            <p class="cart-price">$12</p>
+<section id="cartPage" class="visible">
+
+    <div class="cart-grid">
+
+        <div class="cart-item">
+            <div class="cart-info">
+                <h2 class="cart-name">Sample Product</h2>
+                <img class="cart-img" src="{{ url_for('static', filename='Images/TripleT.png') }}" alt="">
+                <p class="cart-vendor">Vendor: Example Vendor</p>
+                <p class="cart-price">$12</p>
+            </div>
+            <button class="remove-btn">Remove</button>
         </div>
-        <button class="remove-btn">Remove</button>
+
+        <div class="cart-item">
+            <div class="cart-info">
+                <h2 class="cart-name">Sample Product</h2>
+                <img class="cart-img" src="{{ url_for('static', filename='Images/TripleT.png') }}" alt="">
+                <p class="cart-vendor">Vendor: Example Vendor</p>
+                <p class="cart-price">$10</p>
+            </div>
+            <button class="remove-btn">Remove</button>
+        </div>
+
+        <div class="cart-item">
+            <div class="cart-info">
+                <h2 class="cart-name">Sample Product</h2>
+                <img class="cart-img" src="{{ url_for('static', filename='Images/TripleT.png') }}" alt="">
+                <p class="cart-vendor">Vendor: Example Vendor</p>
+                <p class="cart-price">$67</p>
+            </div>
+            <button class="remove-btn">Remove</button>
+        </div>
+
     </div>
 
-    
-    <div class="cart-item">
-        <div class="cart-info">
-            <h2 class="cart-name">Sample Product</h2>
-            <p class="cart-vendor">Vendor: Example Vendor</p>
-            <p class="cart-price">$10</p>
-        </div>
-        <button class="remove-btn">Remove</button>
+    <div class="cart-total-box center-txt">
+        <h2 class="cart-total">Total: $69</h2>
+        <button class="checkout-btn" onclick="showConfirm()">Confirm Order</button>
     </div>
 
-    <div class="cart-item">
-        <div class="cart-info">
-            <h2 class="cart-name">Sample Product</h2>
-            <p class="cart-vendor">Vendor: Example Vendor</p>
-            <p class="cart-price">$67</p>
-        </div>
-        <button class="remove-btn">Remove</button>
+</section>
+
+<section id="confirmOrderPage" class="hidden">
+
+    <h2 class="center-txt bold">Confirm Your Order</h2>
+
+    <div class="confirm-box">
+        <h3>Order Summary</h3>
+        <p>Sample Product — $12</p>
+        <p>Sample Product — $10</p>
+        <p>Sample Product — $67</p>
+
+        <h3>Total: $69</h3>
     </div>
 
-</div>
+    <div class="confirm-box">
+        <h3>Your Information</h3>
 
-<div class="cart-total-box center-txt">
-    <h2 class="cart-total">Total: $69</h2>
-    <button class="checkout-btn">Checkout</button>
-</div>
+        <label>Full Name</label>
+        <input type="text" placeholder="your name">
+
+        <label>Email</label>
+        <input type="email" placeholder="your email">
+
+        <label>Address</label>
+        <input type="text" placeholder="your address, City, ZIP">
+
+        <label>Payment Method</label>
+        <select>
+            <option value="card">Credit/Debit Card</option>
+        </select>
+
+        <button class="checkout-btn" onclick="showAdmin()">Submit Order</button>
+    </div>
+
+</section>
+
+<section id="adminOrderQueue" class="hidden">
+
+    <h2 class="center-txt bold">Pending Orders</h2>
+
+    <div class="confirm-box">
+        <p><strong>Name:</strong> Your Name</p>
+        <p><strong>Email:</strong> Your Email</p>
+        <p><strong>Address:</strong> Your Address</p>
+        <p><strong>Total:</strong> $69</p>
+
+        <h4>Items:</h4>
+        <p>- Sample Product</p>
+        <p>- Sample Product</p>
+        <p>- Sample Product</p>
+
+        <button class="checkout-btn">Approve</button>
+    </div>
+
+</section>
 
 {% endblock %}
