@@ -17,6 +17,18 @@ header {
     justify-content: space-between;
 }
 
+header button {
+    width: 150px;
+    height: 40px;
+    display: block;
+    cursor: pointer;
+    border: 2px solid #391361;
+    margin-top: 12px;
+    background-color: #fff;
+    border-radius: 10px;
+    color: #391361;
+}
+
 .header-logo {
     max-width: 15%;
 }
@@ -72,13 +84,54 @@ main {
 
 .products-main-grid {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 20% 80%;
+    margin-top: 30px;
 }
 
 .products {
+    display: grid;
+    grid-template-columns: 25% 25% 25% 25%;
+}
+
+.products div {
+    border: 2px solid #391361;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px
+}
+
+.products div img {
+    display: block;
+    width: 200px;
+    margin: 0 auto;
+}
+
+.products div p {
+    text-indent: 30px
+}
+
+.products div .product-vender-name, .product-vender-name {
+    font-size: .75em;
+    margin-bottom: 8px
+}
+
+.products div .product-btn-grid {
+    border: 0;
     display: flex;
     justify-content: space-evenly;
-    margin-top: 26px;
+    margin: 0;
+    padding: 0;
+}
+
+.products div .product-btn-grid p {
+    text-indent: 0px;
+}
+
+
+.products div .product-btn-grid a {
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.9em;
 }
 
 #product-reset {
@@ -94,8 +147,67 @@ main {
     cursor: pointer;
 }
 
+.add-product-btn {
+    color: #391361;
+    padding: 10px;
+    border: 2px solid #391361;
+    border-radius: 20px;
+    margin: 0 auto;
+}
+
+.pop-up {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    background-color: #fff;
+    border: 4px solid #391361;
+    width: 20%;
+    height: 55%;
+    border-radius: 20px;
+    padding: 25px;
+}
+
+.pop-up img {
+    display: block;
+    width: 300px;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.pop-up-carosel {
+    display: flex;
+    justify-content: space-between;
+    width: 320px;
+    overflow-x: scroll;
+    margin-bottom: 16px;
+}
+
+.pop-up-grid {
+    display: flex;
+    justify-content: space-between;
+    width: 400px;
+}
+
+.confirm {
+    display: block;
+    margin: 0 auto;
+    background-color: #fff;
+    border: 2px solid #391361;
+    padding: 10px 20px;
+    margin-top: -20px;
+    border-radius: 18px;
+    cursor: pointer;
+}
+
+.confirm:active {
+    background-color: #391361;
+    color: #fff;
+}
+
 footer {
-    width: 100%;
     border-top: 3px solid #391361;
     margin-bottom: 20px;
 }

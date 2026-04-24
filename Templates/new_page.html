@@ -15,12 +15,8 @@
         <div>
             <img src="{{ url_for('static', filename='Images/logo.png') }}" alt="app logo" class="header-logo">
         </div>
-        {# {% if session.get('username') %} #}
             <i class="fa-solid fa-cart-shopping cart"></i>
-            <button>Log Out</button>
-        {# {% endif %} #}
     </header>
-    {# {% if session.get('username') %} #}
     <nav>
         <ul>
             <li><a href="/">Home</a></li>
@@ -31,15 +27,11 @@
             <li id="chat-link"><a href="/vender_chat">Chat</a></li>
         </ul>
     </nav>
-    {# {% endif %} #}
     <main>
-        {% block content %}
-        {% endblock %}
     </main>
     <footer>
         <p class="copy center-txt">Copyright &copy; 2026. All Rights Reserved.</p>
         <div class="footer-grid">
-            {# {% if session.get('username') %} #}
             <div>
                 <ul>
                     <li><a href="/">Home</a></li>
@@ -47,12 +39,10 @@
                     <li><a href="/account">Account</a></li>
                 </ul>
             </div>
-            {# {% endif %} #}
             <div>
                 <img src="static/Images/footer_logo.png" alt="footer logo" class="footer-logo">
             </div>
         </div>
     </footer>
-    <script src="{{ url_for('static', filename='script.js')}}"></script>
 </body>
 </html>
