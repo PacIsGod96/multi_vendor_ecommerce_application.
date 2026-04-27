@@ -639,9 +639,17 @@ footer {
     min-height: 350px;
     background: #f0fff0;
     border: 3px dashed #2e8b57;
+    border-radius: 18px;
+    padding: 25px;
+    box-sizing: border-box;
+}
+
+#confirmedOrders {
+    min-height: 200px;
+    width: 100%;
+}
 
 #confirmedOrders .order-item {
-    background: #d4ffd4;              
+    background: #d4ffd4;
     border-color: #2e8b57;
-}
 }

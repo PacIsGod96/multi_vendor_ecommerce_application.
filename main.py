@@ -78,7 +78,7 @@ def vendor_chat_page():
 
 @app.route('/admin_confirm_order', methods = ['GET', 'POST']) #Handles getting the orders and their info and sends backs the info for when the admin confirms it or denys it 
 def admin_confirm_order_page():
-    return render_template('adminConfirmOrder')
+    return render_template('adminConfirmOrder.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
