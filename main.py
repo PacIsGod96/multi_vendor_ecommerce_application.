@@ -68,7 +68,7 @@ def cart_page():
 def account_page():
     return render_template('account.html')
 
-@app.route('/admin_compliant', methods = ['GET', 'POST']) #Handles getting the reviews/complaints and sending the repsonse back to the customer
+@app.route('/admin_complaint', methods = ['GET', 'POST']) #Handles getting the reviews/complaints and sending the repsonse back to the customer
 def admin_complaint_page():
     return render_template('adminComplaint.html')
 
