@@ -47,6 +47,11 @@
 
             {% for order in orders %}
             <div class="order-item"
+                draggable="true"
+                data-order-id="{{ order.id }}"
+                ondragstart="startDrag(event)"
+                ondragend="endDrag(event)">
+
                  draggable="true"
                  data-order-id="{{ order.id }}"
                  ondragstart="startDrag(event)"
@@ -63,8 +68,8 @@
 
     <!-- Confirm Box -->
     <div class="confirm-box-admin"
-         ondragover="allowDrop(event)"
-         ondrop="dropOrder(event)">
+        ondragover="allowDrop(event)"
+        ondrop="dropOrder(event)">
         <h2>Drop Here to Confirm</h2>
 
         <div id="confirmedOrders"></div>
