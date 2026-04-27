@@ -10,8 +10,41 @@
     <!-- Pending Orders -->
     <div class="pending-orders">
         <h2>Pending Orders</h2>
-
         <div class="order-list">
+
+            <div class="order-item"
+                 draggable="true"
+                 data-order-id="101"
+                 ondragstart="startDrag(event)"
+                 ondragend="endDrag(event)">
+                <h3>Order #101</h3>
+                <p><strong>Customer:</strong> Test User A</p>
+                <p><strong>Date:</strong> 2026-04-24</p>
+                <p><strong>Total:</strong> $49.99</p>
+            </div>
+
+            <div class="order-item"
+                 draggable="true"
+                 data-order-id="102"
+                 ondragstart="startDrag(event)"
+                 ondragend="endDrag(event)">
+                <h3>Order #102</h3>
+                <p><strong>Customer:</strong> Test User B</p>
+                <p><strong>Date:</strong> 2026-04-24</p>
+                <p><strong>Total:</strong> $89.50</p>
+            </div>
+
+            <div class="order-item"
+                 draggable="true"
+                 data-order-id="103"
+                 ondragstart="startDrag(event)"
+                 ondragend="endDrag(event)">
+                <h3>Order #103</h3>
+                <p><strong>Customer:</strong> Test User C</p>
+                <p><strong>Date:</strong> 2026-04-24</p>
+                <p><strong>Total:</strong> $15.00</p>
+            </div>
+
             {% for order in orders %}
             <div class="order-item"
                 draggable="true"
@@ -19,19 +52,26 @@
                 ondragstart="startDrag(event)"
                 ondragend="endDrag(event)">
 
+                 draggable="true"
+                 data-order-id="{{ order.id }}"
+                 ondragstart="startDrag(event)"
+                 ondragend="endDrag(event)">
                 <h3>Order #{{ order.id }}</h3>
                 <p><strong>Customer:</strong> {{ order.customer.name }}</p>
                 <p><strong>Date:</strong> {{ order.date }}</p>
                 <p><strong>Total:</strong> ${{ "%.2f"|format(order.total) }}</p>
             </div>
             {% endfor %}
+
         </div>
     </div>
+
     <!-- Confirm Box -->
     <div class="confirm-box-admin"
         ondragover="allowDrop(event)"
         ondrop="dropOrder(event)">
         <h2>Drop Here to Confirm</h2>
+
         <div id="confirmedOrders"></div>
     </div>
 
