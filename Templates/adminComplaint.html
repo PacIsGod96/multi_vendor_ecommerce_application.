@@ -3,4 +3,50 @@
 {% block title %}Admin complaint Inbox{% endblock %}
 
 {% block content %}
+<div class="admin_complaint_div">
+    <form action="/admin_complaint" id="admin_complaint_form" method="POST">
+        <div class="admin_complaint_panels">
+            <div class="admin_inbox">
+                <div class="admin_inbox_header">
+                    <h1>Inbox</h1>
+
+                    <div class="admin_inbox_filter_div">
+                        <label>Select Demand</label>
+                        <select name="complaint" id="complaintTypes">
+                            <option value="all">All</option>
+                            <option value="return">Returns</option>
+                            <option value="refund">Refund</option>
+                            <option value="warranty_claim">Warranty Claim</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin_inbox_list">
+                    <div class="complaint_item" data-type="refund">Dave</div>
+                    <div class="complaint_item" data-type="return">Lisa</div>
+                    <div class="complaint_item" data-type="warranty_claim">Rick</div>
+                </div>
+            </div>
+            <div class="admin_complaint_response">
+                <div class="response_placeholder" id="responsePlaceholder">
+                    Select Chat
+                </div>
+
+                <div class="response_content admin_hidden" id="responseContent">
+                    
+                    <div class="response_messages">
+
+                    </div>
+
+                    <div class="response_input_bar">
+                        <input type="text" placeholder="Type response...">
+                        <button type="button">Send</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+    <script src="{{ url_for('static', filename='complaint.js')}}"></script>
+</div>
 {% endblock %}
