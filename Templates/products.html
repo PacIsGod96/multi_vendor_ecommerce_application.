@@ -4,7 +4,7 @@
 
 {% block content %}
 <h2 class="center-txt">Our Products</h2>
-<div class="pop-up">
+<div class="pop-up" id="pop-up">
     <div class="pop-up-carosel">
         <img src='static/Images/Drip Market/Drip Plaza Tee.jpg' alt="product">
         <img src="static/Images/Drip Market/Drip Plaza Tee 2.png" alt="product">
@@ -33,8 +33,122 @@
             </select>
         </div>
     </div>
-    <button class="confirm">Confirm & Add</button>
+    <button class="confirm" onclick="confirmAdd()">Confirm & Add</button>
 </div>
+<div class="addProduct" id="addProduct">
+    <h1 class="add-product-title">Add Product</h1>
+    <p class="center-txt">* - Required</p>
+    <br>
+    <form class="addform">
+        <label for="new-product-name">Name of Product: *</label>
+        <input id="new-product-name" type="text" required>
+
+        <label for="new-product-price">Price of Product: *</label>
+        <input id="new-product-price" type="number" required>
+
+        <div class="product-options">
+            <div class="sizes-section">
+                <p>Sizes:</p>
+                    <label><input type="checkbox" name="sizes" value="S"> S</label><br>
+                    <label><input type="checkbox" name="sizes" value="M"> M</label><br>
+                    <label><input type="checkbox" name="sizes" value="L"> L</label><br>
+                    <label><input type="checkbox" name="sizes" value="XL"> XL</label><br>
+                    <label><input type="checkbox" name="sizes" value="XXL"> XXL</label>
+            </div>
+            <div class="colors-section">
+                <p>Colors:</p>
+
+                <div>
+                    <label for="color1">Color 1:</label>
+                    <input type="text" id="color1">
+                </div>
+
+                <div>
+                    <label for="color2">Color 2:</label>
+                    <input type="text" id="color2">
+                </div>
+
+                <div>
+                    <label for="color3">Color 3:</label>
+                    <input type="text" id="color3">
+                </div>
+            </div>
+        </div>
+        <div class="upload-section">
+            <label for="new-product-img">Upload Product Images: *</label>
+            <input id="new-product-img" type="file" multiple required accept="image/*">
+        </div>
+
+        <label for="vendor-new-product">Vendor:</label>
+        <input type="text" id="vendor-new-product">
+
+        <div class="center">
+            <input type="submit" value="Add Product" class="confirm-add-product-btn" onclick="confirmProduct()">
+        </div>
+    </form>
+</div>
+<div class="editProduct" id="editProduct">
+    <h1 class="add-product-title">Edit Product</h1>
+    <p class="center-txt">Leave fields blank if you don’t want to change them</p>
+    <br>
+
+    <form class="editform">
+
+        <label for="edit-product-name">Name of Product:</label>
+        <input id="edit-product-name" type="text">
+
+        <label for="edit-product-price">Price of Product:</label>
+        <input id="edit-product-price" type="number">
+
+        <div class="product-options">
+            <div class="sizes-section">
+                <p>Sizes:</p>
+                <label><input type="checkbox" name="edit-sizes" value="S"> S</label><br>
+                <label><input type="checkbox" name="edit-sizes" value="M"> M</label><br>
+                <label><input type="checkbox" name="edit-sizes" value="L"> L</label><br>
+                <label><input type="checkbox" name="edit-sizes" value="XL"> XL</label><br>
+                <label><input type="checkbox" name="edit-sizes" value="XXL"> XXL</label>
+            </div>
+            <div class="colors-section">
+                <p>Colors:</p>
+
+                <div>
+                    <label for="edit-color1">Color 1:</label>
+                    <input type="text" id="edit-color1">
+                </div>
+
+                <div>
+                    <label for="edit-color2">Color 2:</label>
+                    <input type="text" id="edit-color2">
+                </div>
+
+                <div>
+                    <label for="edit-color3">Color 3:</label>
+                    <input type="text" id="edit-color3">
+                </div>
+            </div>
+        </div>
+        <div class="upload-section">
+            <label for="edit-product-img">Upload New Images:</label>
+            <input id="edit-product-img" type="file" multiple accept="image/*">
+        </div>
+
+        <label for="edit-vendor-product">Vendor:</label>
+        <input type="text" id="edit-vendor-product">
+
+        <div class="center">
+            <input type="submit" value="Update Product" class="confirm-add-product-btn" onclick="confirmEdit()">
+        </div>
+    </form>
+</div>
+<div class="deleteProduct" id="deleteProduct">
+    <h1 class="delete-product-txt">Are you sure you want to delete this product? This cannot be undone.</h1>
+    <div class="delete-btn-grid">
+        <input type="submit" value="Delete Product" class="confirm-add-product-btn" onclick="confirmDelete()">
+        <input type="submit" value="Cancel" class="confirm-add-product-btn" onclick="exitDelete()">
+    </div>
+
+</div>  
 <div class="products-main-grid">
     <div>
         {# {% if session.get('username') %} #}
@@ -48,7 +162,7 @@
         <button onclick="resetProducts()" id="product-reset">Reset</button><br>
         {# {% endif %} #}
         {# {% if session.get('username') %} #}
-        <a class="add-product-btn">Add Product</a>
+        <a class="add-product-btn" onclick="addProduct()">Add Product</a>
         {# {% endif %} #}
     </div>
     <div class="products">
@@ -59,13 +173,13 @@
             <div class="product-btn-grid">
                 <p>$16.99</p>
                 {# {% if session.get('username') %} #}
-                <a>Add To Cart</a>
+                <a onclick="popUp()">Add To Cart</a>
                 {# {% endif %} #}
             </div>
             {# {% if session.get('username') %} #}
             <div class="product-btn-grid">
-                <a>Edit Product</a>
-                <a>Delete Product</a>
+                <a onclick="editProduct()">Edit Product</a>
+                <a onclick="deleteProduct()">Delete Product</a>
             </div>
             {# {% endif %} #}
         </div>

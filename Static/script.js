@@ -40,3 +40,48 @@ function toggleEdit(id) {
         input.setAttribute("readonly", true)
     }
 }
+
+function popUp() {
+    const pop_up = document.getElementById('pop-up');
+    pop_up.style.display = 'block';
+}
+
+function confirmAdd() {
+    const pop_up = document.getElementById('pop-up');
+    pop_up.style.display = 'none';
+}
+
+function addProduct() {
+    const addWindow = document.getElementById('addProduct');
+    addWindow.style.display = 'block';
+}
+
+function confirmProduct() {
+    const addWindow = document.getElementById('addProduct');
+    addWindow.style.display = 'none';
+}
+
+function editProduct() {
+    const editWindow = document.getElementById('editProduct');
+    editWindow.style.display = 'block';
+}
+
+function confirmEdit() {
+    const editWindow = document.getElementById('editProduct');
+    editWindow.style.display = 'none';
+}
+
+function deleteProduct() {
+    const deleteWindow = document.getElementById('deleteProduct')
+    deleteWindow.style.display = "block"
+}
+
+function confirmDelete() {
+    const deleteWindow = document.getElementById('deleteProduct')
+    deleteWindow.style.display = "none"
+}
+
+function exitDelete() {
+    const deleteWindow = document.getElementById('deleteProduct')
+    deleteWindow.style.display = "none"    
+}
