@@ -5,6 +5,8 @@ import os
 
 app = Flask(__name__)
 
+app.secret_key = os.urandom(24)
+
 conn_str = "mysql://root:cset155@localhost/multi_vendor_ecommerce"
 engine = create_engine(conn_str, echo=True)
 conn = engine.connect()
@@ -19,11 +21,58 @@ def login_register():
 
 @app.route('/register', methods = ['POST']) #Handles sending info from the sign up 
 def register_post():
+    username = request.form['register_username']
+    password = request.form['register_password']
+    first_name = request.form['register_first_name']
+    last_name = request.form['register_last_name']
+    email = request.form['register_email']
+    role = request.form['register_role']
+
+    sql = text("""
+        INSERT INTO accounts
+        (first_name, last_name, username, password, email_address, role)
+        VALUES
+        (:FirstName, :LastName, :Username, :Password, :EmailAddress, :Role)
+    """)
+
+    conn.execute(sql, {
+        'FirstName': first_name,
+        'LastName': last_name,
+        'Username': username,
+        'Password': generate_password_hash(password),
+        'EmailAddress': email,
+        'Role': role
+    })
+
+    conn.commit()
+
     return render_template('index.html')
 
 @app.route('/login', methods = ['POST']) #handles sending the info from login to compare and the let the user login
 def login():
-    return render_template('home.html')
+    username = request.form['login_username']
+    password = request.form['login_password']
+
+    sql = text("""
+        SELECT username, password, role
+        FROM accounts
+        WHERE username = :Username
+    """)
+    result = conn.execute(sql, {'Username': username}).mappings().fetchone()
+    print("Entered username: ", username)
+    print("DB result: ", result)
+
+    if result:
+        stored_password = result['password']
+        role = result['role']
+
+        if check_password_hash(stored_password, password):
+            session['username'] = result['username']
+            session['role'] = role
+
+            return redirect(url_for('products_page'))
+        
+    return render_template('index.html')
 
 @app.route('/logout', methods = ['GET']) #Handles loging out
 def logout():
