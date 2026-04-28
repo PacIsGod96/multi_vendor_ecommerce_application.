@@ -217,6 +217,19 @@
     </div>
 </div>
 <div id="vendorChat">
-    <h1>Fuck you collin</h1>
+    <div class="chat-title-grid">
+        <h2>Chatting With:</h2>
+        {# {% if session.get('username') %} #}
+        <h2>user</h2>
+        {# {% endif %} #}
+    </div>
+    <div class="chat_messages" id="chat_messages_pop_up">
+                        
+    </div>
+    <div class="chat_input_bar chat-input-popup">
+        <input type="text" placeholder="Type a message...">
+        <button type="button">Send</button>
+    </div>
 </div>
+<script src="{{ url_for('static', filename='pop_up_chat.js')}}"></script>
 {% endblock %}
