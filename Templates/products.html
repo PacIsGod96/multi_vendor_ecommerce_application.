@@ -34,6 +34,7 @@
         </div>
     </div>
     <button class="confirm" onclick="confirmAdd()">Confirm & Add</button>
+     <p>Review/Complaints go here</p>
 </div>
 <div class="addProduct" id="addProduct">
     <h1 class="add-product-title">Add Product</h1>
@@ -89,7 +90,7 @@
 </div>
 <div class="editProduct" id="editProduct">
     <h1 class="add-product-title">Edit Product</h1>
-    <p class="center-txt">Leave fields blank if you don’t want to change them</p>
+    <p class="center-txt">Leave fields blank if you don't want to change them</p>
     <br>
 
     <form class="editform">
@@ -169,7 +170,7 @@
         <div>
             <img src='static/Images/Drip Market/Drip Plaza Tee.jpg' alt="product">
             <p>Drip Plaza Tee</p>
-            <p class='product-vender-name'>By Drip Market</p>
+            <p class='product-vender-name' onclick="vendorChat()">By Drip Market</p>
             <div class="product-btn-grid">
                 <p>$16.99</p>
                 {# {% if session.get('username') %} #}
@@ -214,5 +215,8 @@
             <p>SockGremlinz</p>
         </div>
     </div>
+</div>
+<div id="vendorChat">
+    <h1>Fuck you collin</h1>
 </div>
 {% endblock %}

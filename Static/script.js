@@ -72,19 +72,25 @@ function confirmEdit() {
 }
 
 function deleteProduct() {
-    const deleteWindow = document.getElementById('deleteProduct')
+    const deleteWindow = document.getElementById('deleteProduct');
     deleteWindow.style.display = "block"
 }
 
 function confirmDelete() {
-    const deleteWindow = document.getElementById('deleteProduct')
+    const deleteWindow = document.getElementById('deleteProduct');
     deleteWindow.style.display = "none"
 }
 
 function exitDelete() {
-    const deleteWindow = document.getElementById('deleteProduct')
+    const deleteWindow = document.getElementById('deleteProduct');
     deleteWindow.style.display = "none"    
+}
 
+function vendorChat() {
+    const chatWindow = document.getElementById('vendorChat');
+    chatWindow.style.display = 'block'
+}
+ 
 // =========================
 // CART → CONFIRM → ADMIN
 // =========================
