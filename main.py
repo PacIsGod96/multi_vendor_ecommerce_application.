@@ -71,6 +71,10 @@ def login():
             session['role'] = role
 
             return redirect(url_for('products_page'))
+        else: 
+            return "Incorrect password", 401
+    else:
+        return "Username not found", 404 
         
     return render_template('index.html')
 
