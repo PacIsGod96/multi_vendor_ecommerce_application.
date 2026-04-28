@@ -21,12 +21,12 @@ def login_register():
 
 @app.route('/register', methods = ['POST']) #Handles sending info from the sign up 
 def register_post():
-    username = request.form['register_username']
-    password = request.form['register_password']
-    first_name = request.form['register_first_name']
-    last_name = request.form['register_last_name']
-    email = request.form['register_email']
-    role = request.form['register_role']
+    username = request.form.get('register_username')
+    password = request.form.get('register_password')
+    first_name = request.form.get('register_first_name')
+    last_name = request.form.get('register_last_name')
+    email = request.form.get('register_email')
+    role = request.form.get('register_role')
 
     sql = text("""
         INSERT INTO accounts
@@ -50,8 +50,8 @@ def register_post():
 
 @app.route('/login', methods = ['POST']) #handles sending the info from login to compare and the let the user login
 def login():
-    username = request.form['login_username']
-    password = request.form['login_password']
+    username = request.form.get('login_username')
+    password = request.form.get('login_password')
 
     sql = text("""
         SELECT username, password, role
@@ -119,7 +119,63 @@ def cart_page():
 
 @app.route('/account', methods = ['GET', 'POST']) #Handles getting the account info and sending new info if you chnage something in the account
 def account_page():
-    return render_template('account.html')
+    if 'username' not in session:
+        return redirect(url_for('login_register'))
+    
+    username = session['username']
+
+    if request.method == 'POST':
+        sql = text("""
+            SELECT username, password, email_address, first_name, last_name, role
+            FROM accounts
+            WHERE username = :Username
+        """)
+        user = conn.execute(sql, {'Username': username}).mappings().fetchone()
+        
+        new_username = request.form.get('account_username')
+        new_password = request.form.get('account_password')
+        new_email = request.form.get('account_email')
+        new_first = request.form.get('account_first_name')
+        new_last = request.form.get('account_last_name')
+
+        if new_password:
+            hashed_password = generate_password_hash(new_password)
+        else:
+            hashed_password = user['password']
+
+        sql = text("""
+            UPDATE accounts
+            SET username = :Username,
+                password = :Password,
+                email_address = :Email,
+                first_name = :First,
+                last_name = :Last
+            WHERE username = :CurrentUsername
+        """)
+
+        conn.execute(sql, {
+            'Username': new_username,
+            'Password': generate_password_hash(new_password),
+            'Email': new_email,
+            'First': new_first,
+            'Last': new_last,
+            'CurrentUsername': username
+        })
+        conn.commit()
+
+        session['usernme'] = new_username
+
+        return redirect(url_for('account_page'))
+    
+    sql = text("""
+        SELECT username, password, email_address, first_name, last_name, role
+        From accounts
+        WHERE username = :Username
+    """)
+
+    user = conn.execute(sql, {'Username': username}).mappings().fetchone()
+
+    return render_template('account.html', user=user)
 
 @app.route('/admin_complaint', methods = ['GET', 'POST']) #Handles getting the reviews/complaints and sending the repsonse back to the customer
 def admin_complaint_page():
