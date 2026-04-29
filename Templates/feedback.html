@@ -1,0 +1,37 @@
+{% extends "template.html" %}
+
+{% block title %}Product Reviews{% endblock %}
+{% block content %}
+Product Reviews
+
+<div class="reviews-list">  
+    {% for r in reviews %}  
+        <div>  
+            <p><strong>{{ r.username }}</strong> <span>{{ "👕" * r.rating }}</span></p>  
+            <p>{{ r.content }}</p>  
+        </div>  
+    {% endfor %}  
+</div>  
+
+<form action="{{ url_for('send_review_complaint') }}" method="POST">  
+    <label for="review_text">Leave a Review or Complaint:</label>  
+    <textarea name="review_text" id="review_text" required placeholder="Type here..."></textarea>  
+      
+    <div class="product-options">  
+        <div class="colors-section">  
+            <label>Rating:</label>  
+            <div class="shirt-rating">  
+                <input type="radio" name="rating" value="5" id="s5"><label for="s5">👕</label>
+                <input type="radio" name="rating" value="4" id="s4"><label for="s4">👕</label>
+                <input type="radio" name="rating" value="3" id="s3"><label for="s3">👕</label>
+                <input type="radio" name="rating" value="2" id="s2"><label for="s2">👕</label>
+                <input type="radio" name="rating" value="1" id="s1" required><label for="s1">👕</label>
+            </div>  
+        </div>  
+    </div>  
+
+    <div class="center">  
+        <input type="submit" value="Submit Review" class="confirm-add-product-btn">  
+    </div>  
+</form>  
+{% endblock %}

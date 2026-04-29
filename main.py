@@ -189,5 +189,9 @@ def vendor_chat_page():
 def admin_confirm_order_page():
     return render_template('adminConfirmOrder.html')
 
+@app.route('/feedback') 
+def feedback_page():
+    return render_template('feedback.html') 
+
 if __name__ == '__main__':
     app.run(debug=True)

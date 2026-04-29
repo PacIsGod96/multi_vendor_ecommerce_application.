@@ -1035,7 +1035,7 @@ footer {
     gap: 20px;
 }
 
-/* Order card */
+
 .order-item {
     padding: 18px;
     border: 3px solid #914ddb;    
@@ -1054,7 +1054,6 @@ footer {
     transform: scale(0.97);
 }
 
-/* Confirm drop zone */
 .confirm-box-admin {
     min-height: 350px;
     background: #f0fff0;
@@ -1072,4 +1071,85 @@ footer {
 #confirmedOrders .order-item {
     background: #d4ffd4;
     border-color: #2e8b57;
+}
+
+/* review section */
+.review-section {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    margin-top: 20px;
+}
+
+.reviews-list {
+    max-height: 150px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    text-align: left;
+}
+
+.reviews-list div {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+}
+
+.reviews-list strong {
+    color: #333;
+}
+
+.reviews-list span {
+    color: #f39c12; 
+    margin-left: 5px;
+}
+
+.reviews-list p {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.review-section textarea {
+    width: 100%;
+    height: 60px;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: inherit;
+}
+
+.review-section .product-options {
+    display: flex;
+    justify-content: flex-start;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+
+.shirt-rating input[type="radio"] {
+    display: none;
+}
+
+.shirt-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.shirt-rating label {
+    font-size: 24px;
+    cursor: pointer;
+    color: #ccc;
+    filter: grayscale(100%);
+    transition: 0.2s;
+}
+
+
+.shirt-rating label:hover,
+.shirt-rating label:hover ~ label,
+.shirt-rating input[type="radio"]:checked ~ label {
+    filter: grayscale(0%);
+    color: #ff4500; 
 }
