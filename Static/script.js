@@ -91,10 +91,6 @@ function vendorChat() {
     chatWindow.style.display = 'block'
 }
  
-// =========================
-// CART → CONFIRM → ADMIN
-// =========================
-
 function showConfirm() {
     document.getElementById("cartPage").classList.add("hidden");
     document.getElementById("confirmOrderPage").classList.remove("hidden");
@@ -177,7 +173,7 @@ function fillAdminOrder() {
         <button class="checkout-btn">Approve</button>
     `;
 }
-}
+
 
 let draggedOrder = null;
 
@@ -212,3 +208,46 @@ function dropOrder(event) {
 
     draggedOrder = null;
 }
+
+// rating
+function showExplanation(rating) {
+    const feedbackDiv = document.getElementById('extra-feedback');
+    const label = document.getElementById('explanation-label');
+    
+    if (!feedbackDiv || !label) return;
+    feedbackDiv.style.display = 'block';
+    switch(rating) {
+        case 5:
+            label.innerText = "5 Shirts! What was the best part?";
+            break;
+        case 4:
+            label.innerText = "Glad you liked it! Any small tips for us?";
+            break;
+        case 3:
+            label.innerText = "What can we do to earn those last 2 shirts?";
+            break;
+        case 2:
+            label.innerText = "We missed the mark. What exactly went wrong?";
+            break;
+        case 1:
+            label.innerText = "We're sorry. Please tell us how we can fix this.";
+            break;
+        default:
+            label.innerText = "Tell us more about your rating:";
+    }
+}
+function toggleRatingSection() {
+    const category = document.getElementById('category').value;
+    const ratingArea = document.querySelector('.rating-area');
+    const extraFeedback = document.getElementById('extra-feedback');
+
+    if (category === 'Review') {
+        ratingArea.style.display = 'block';
+    } else {
+        ratingArea.style.display = 'none';
+        if(extraFeedback) extraFeedback.style.display = 'none';
+    }
+}
+
+// Make sure it checks the status as soon as the page loads
+document.addEventListener('DOMContentLoaded', toggleRatingSection);
