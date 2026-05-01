@@ -78,11 +78,15 @@ CREATE TABLE review (
 );
 
 CREATE TABLE chat (
-	chat_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+	chat_id INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id INT NOT NULL,
+    receiver_id INT NOT NULL,
     text TEXT,
     images JSON,
-    account_id INT NOT NULL,
-    FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (sender_id) REFERENCES accounts(account_id),
+    FOREIGN KEY (receiver_id) REFERENCES  accounts(account_id)
 );
 
 CREATE TABLE cart (
@@ -295,3 +299,5 @@ SELECT warranty.*, orders.date AS purchase_date, DATE_ADD(orders.date, INTERVAL 
 INSERT INTO chat (text, images, account_id) VALUES ('text', 'img', 1);
 SELECT * FROM chat WHERE account_id = 1;
 DELETE FROM chat WHERE chat_id = 1;
+
+SELECT * FROM accounts;
