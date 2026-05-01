@@ -18,13 +18,12 @@
                 <option value="Warranty">Warranty Claim</option>  
             </select> 
         </div>
-        <div id="panel-message" class="dynamic-panel" style="display: none;">
-            <div class="form-group">
-                <label for="review_text">Message:</label>  
-                <textarea name="review_text" id="review_text" placeholder="Tell us more..."></textarea>  
-            </div>
-        </div>
+
         <div id="panel-review" class="dynamic-panel" style="display: none;">
+            <div class="form-group">
+                <label for="product_id">Product ID:</label>
+                <input type="text" name="product_id" id="product_id" placeholder="12345">
+            </div>
             <div class="rating-container">  
                 <label>Rating:</label>  
                 <div class="shirt-rating">  
@@ -35,32 +34,22 @@
                     <input type="radio" name="rating" value="1" id="s1" onclick="showExplanation(1)"><label for="s1">👕</label>
                 </div>  
             </div>
-            
             <div id="extra-feedback" class="form-group" style="display: none; margin-top: 15px;">
                 <label id="explanation-label" style="font-weight: bold; color: #ff4500;"></label>
             </div>
         </div>
 
-        <div id="panel-complaint" class="dynamic-panel" style="display: none;">
-            <div class="form-group alert-info" style="padding: 10px; background: #eef; border-left: 4px solid #33c;">
-                Please describe the issue in detail so our team can help you.
+        <div id="panel-order-info" class="dynamic-panel" style="display: none;">
+            <div class="form-group">
+                <label for="order_id">Order ID:</label>
+                <input type="text" name="order_id" id="order_id" placeholder="Provided at checkout (e.g., ORD-12345)">
             </div>
         </div>
 
-        <div id="panel-refund" class="dynamic-panel" style="display: none;">
+        <div id="panel-message" class="dynamic-panel" style="display: none;">
             <div class="form-group">
-                <label for="order_number">Order Number:</label>
-                <input type="text" name="order_number" id="order_number" placeholder="e.g., #DRIP-12345">
-            </div>
-            <div class="form-group alert-warning" style="padding: 10px; background: #fff4e5; border-left: 4px solid #ffa500;">
-                Refunds are processed within 5-8 business days after inspection.
-            </div>
-        </div>
-
-        <div id="panel-warranty" class="dynamic-panel" style="display: none;">
-            <div class="form-group">
-                <label for="warranty_serial">Warranty Serial # or Order #:</label>
-                <input type="text" name="warranty_serial" id="warranty_serial" placeholder="Check your tag or confirmation email">
+                <label for="review_text">Message Details:</label>  
+                <textarea name="review_text" id="review_text" placeholder="Tell us more about your experience..."></textarea>  
             </div>
         </div>
 
@@ -69,7 +58,6 @@
                 <label>Attach a photo (Optional):</label>
                 <div class="image-upload-wrapper">
                     <input type="file" name="image" id="image" accept="image/*" class="image-upload-btn">
-                    <br><small class="text-muted">Accepted formats: JPG, PNG. Max 5MB.</small>
                 </div>
             </div>
         </div>

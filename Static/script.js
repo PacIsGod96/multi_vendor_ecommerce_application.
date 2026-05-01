@@ -261,8 +261,7 @@ function toggleFormPanels() {
     if (category === '') return;
 
     document.getElementById('panel-message').style.display = 'block';
-
-    // Show the specific panel
+    
     if (category === 'Review') {
         document.getElementById('panel-review').style.display = 'block';
     } else if (category === 'Complaint') {
@@ -289,3 +288,23 @@ function showExplanation(rating) {
     }
 }
 document.addEventListener('DOMContentLoaded', toggleFormPanels);
+
+
+function toggleFormPanels() {
+    const category = document.getElementById('category').value;
+    
+    const panels = document.querySelectorAll('.dynamic-panel');
+    panels.forEach(panel => panel.style.display = 'none');
+
+    if (category === '') return;
+
+    document.getElementById('panel-message').style.display = 'block';
+    document.getElementById('panel-image').style.display = 'block';
+
+    if (category === 'Review') {
+        document.getElementById('panel-review').style.display = 'block';
+    } else {
+
+        document.getElementById('panel-order-info').style.display = 'block';
+    }
+}
