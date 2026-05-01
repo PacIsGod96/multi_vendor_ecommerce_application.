@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, session
+from flask import Flask, render_template, request, url_for, redirect, session, jsonify
 from sqlalchemy import create_engine, text, bindparam
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -103,7 +103,45 @@ def send_review_complaint():
 
 @app.route('/send_chat', methods = ['POST']) #Hadles sending a chat to the vendor
 def send_chat():
-    return render_template('products.html')
+    data = request.get_json()
+
+    sender_id = data['sender_id']
+    receiver_id = data['receiver_id']
+    text_msg = data['text']
+
+    sql = text("""
+        INSERT INTO chat (sender_id, receiver_id, text)
+        VALUES (:sender_id, :receiver_id, :text)
+    """)
+
+    conn.execute(sql, {
+        "sender_id": sender_id,
+        "receiver_id": receiver_id,
+        "text": text_msg
+    })
+
+    conn.commit()
+
+    return jsonify({"status": "success"})
+
+@app.route('/get_chat', methods=['GET'])
+def get_chat():
+    user1 = request.args.get('user1')
+    user2 = request.args.get('user2')
+
+    sql = text("""
+        SELECT *
+        FROM chat
+        WHERE (sender_id = :u1 AND receiver_id = :u2)
+            OR (sender_id = :u2 AND receiver_id = :u1)
+    """)
+
+    result = conn.execute(sql, {
+        "u1": user1,
+        "u2": user2
+    }).mappings().all()
+
+    return jsonify(result)
 
 @app.route('/update_product', methods = ['POST']) #Handles sending updated informartion 
 def update_product():
@@ -155,7 +193,7 @@ def account_page():
 
         conn.execute(sql, {
             'Username': new_username,
-            'Password': generate_password_hash(new_password),
+            'Password': hashed_password,
             'Email': new_email,
             'First': new_first,
             'Last': new_last,
@@ -163,7 +201,7 @@ def account_page():
         })
         conn.commit()
 
-        session['usernme'] = new_username
+        session['username'] = new_username
 
         return redirect(url_for('account_page'))
     
@@ -183,6 +221,9 @@ def admin_complaint_page():
 
 @app.route('/vendor_chat', methods = ['GET', 'POST']) #Handles getting the the users and their chats and the vendor sending the chat back
 def vendor_chat_page():
+    vendors = conn.execute(
+        text("SELECT account_id, username FROM accounts WHERE role = 'user'")
+    ).fetchall()
     return render_template('vendorChat.html')
 
 @app.route('/admin_confirm_order', methods = ['GET', 'POST']) #Handles getting the orders and their info and sends backs the info for when the admin confirms it or denys it 
