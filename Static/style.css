@@ -113,7 +113,7 @@ main {
 }
 
 .products div p {
-    text-indent: 30px
+    text-indent: 26px
 }
 
 .products div .product-vender-name, .product-vender-name {
@@ -265,7 +265,7 @@ main {
 }
 
 #vendorChat {
-    display: block;
+    display: none;
     position: fixed;
     bottom: 0;
     right: 0;  
@@ -345,6 +345,19 @@ main {
 .confirm:active, .confirm-add-product-btn:active, .add-product-btn:active, #product-reset:active {
     background-color: #391361;
     color: #fff;
+}
+
+.products div.name_id_grid {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+.prod-id {
+    font-size: 0.75em;
+    margin-right: 20px
 }
 
 footer {
@@ -753,7 +766,6 @@ footer {
     flex-direction: column;
     background-color: #f5f5f5;
     position: relative;
-
     overflow: hidden;
 }
 
