@@ -249,5 +249,43 @@ function toggleRatingSection() {
     }
 }
 
-// Make sure it checks the status as soon as the page loads
 document.addEventListener('DOMContentLoaded', toggleRatingSection);
+
+function toggleFormPanels() {
+    const category = document.getElementById('category').value;
+    
+    // Hide all panels
+    const panels = document.querySelectorAll('.dynamic-panel');
+    panels.forEach(panel => panel.style.display = 'none');
+
+    if (category === '') return;
+
+    document.getElementById('panel-message').style.display = 'block';
+
+    // Show the specific panel
+    if (category === 'Review') {
+        document.getElementById('panel-review').style.display = 'block';
+    } else if (category === 'Complaint') {
+        document.getElementById('panel-complaint').style.display = 'block';
+    } else if (category === 'Refund') {
+        document.getElementById('panel-refund').style.display = 'block';
+    } else if (category === 'Warranty') {
+        document.getElementById('panel-warranty').style.display = 'block';
+    }
+}
+
+function showExplanation(rating) {
+    const feedbackDiv = document.getElementById('extra-feedback');
+    const label = document.getElementById('explanation-label');
+    
+    feedbackDiv.style.display = 'block';
+
+    switch(rating) {
+        case 5: label.innerText = "5 Shirts! What was the best part?"; break;
+        case 4: label.innerText = "Glad you liked it! Any small tips?"; break;
+        case 3: label.innerText = "How can we earn those last 2 shirts?"; break;
+        case 2: label.innerText = "What exactly went wrong?"; break;
+        case 1: label.innerText = "How can we fix this for you?"; break;
+    }
+}
+document.addEventListener('DOMContentLoaded', toggleFormPanels);

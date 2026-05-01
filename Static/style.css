@@ -1207,3 +1207,32 @@ textarea {
 .rating-area {
     margin-top: 15px;
 }
+
+
+.shirt-rating input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.shirt-rating label {
+    font-size: 4rem; 
+    cursor: pointer;
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+.shirt-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    gap: 5px;
+}
+
+.shirt-rating label:hover,
+.shirt-rating label:hover ~ label,
+.shirt-rating input:checked ~ label {
+    filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.5));
+
+}
