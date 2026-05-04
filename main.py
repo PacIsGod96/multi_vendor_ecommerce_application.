@@ -89,9 +89,54 @@ def products_page():
         text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")).fetchall()
     return render_template('products.html', vendors=vendors)
 
-@app.route('/add_product', methods = ['POST'])
+@app.route('/add_product', methods=['POST'])
 def add_product():
-    return render_template('products.html')
+
+    name = request.form.get('name')
+    price = request.form.get('price')
+
+    sizes = request.form.getlist('sizes')
+    colors = request.form.getlist('colors')
+
+    vendor_id = session.get('user_id')
+
+    sql = text("""
+        INSERT INTO product (name)
+        VALUES (:name)
+    """)
+
+    result = conn.execute(sql, {'name': name})
+    conn.commit()
+
+    product_id = result.lastrowid
+
+    sql2 = text("""
+        INSERT INTO vendor_product (vendor_id, product_id, price, available_inventory)
+        VALUES (:vendor_id, :product_id, :price, 100)
+    """)
+
+    conn.execute(sql2, {
+        'vendor_id': vendor_id,
+        'product_id': product_id,
+        'price': price
+    })
+
+    conn.commit()
+
+    for size in sizes:
+        conn.execute(text("""
+            INSERT INTO product_sizes (product_id, size)
+            VALUES (:pid, :size)
+        """), {'pid': product_id, 'size': size})
+
+    for color in colors:
+        if color.strip(): 
+            conn.execute(text("""
+                INSERT INTO product_colors (product_id, color)
+                VALUES (:pid, :color)
+            """), {'pid': product_id, 'color': color})
+    conn.commit()
+    return redirect(url_for('products_page'))
 
 @app.route('/add_to_cart', methods = ['POST']) #Handles adding the product to the cart
 def add_to_cart():
