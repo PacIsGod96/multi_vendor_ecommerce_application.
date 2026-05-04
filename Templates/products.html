@@ -40,52 +40,61 @@
     <h1 class="add-product-title">Add Product</h1>
     <p class="center-txt">* - Required</p>
     <br>
-    <form class="addform">
+
+    <form class="addform" action="/add_product" method="POST" enctype="multipart/form-data">
+
         <label for="new-product-name">Name of Product: *</label>
-        <input id="new-product-name" type="text" required>
+        <input id="new-product-name" name="name" type="text" required>
 
         <label for="new-product-price">Price of Product: *</label>
-        <input id="new-product-price" type="number" required>
+        <input id="new-product-price" name="price" type="number" step="0.01" required>
 
         <div class="product-options">
+
             <div class="sizes-section">
                 <p>Sizes:</p>
-                    <label><input type="checkbox" name="sizes" value="S"> S</label><br>
-                    <label><input type="checkbox" name="sizes" value="M"> M</label><br>
-                    <label><input type="checkbox" name="sizes" value="L"> L</label><br>
-                    <label><input type="checkbox" name="sizes" value="XL"> XL</label><br>
-                    <label><input type="checkbox" name="sizes" value="XXL"> XXL</label>
+
+                <label><input type="checkbox" name="sizes" value="S"> S</label><br>
+                <label><input type="checkbox" name="sizes" value="M"> M</label><br>
+                <label><input type="checkbox" name="sizes" value="L"> L</label><br>
+                <label><input type="checkbox" name="sizes" value="XL"> XL</label><br>
+                <label><input type="checkbox" name="sizes" value="XXL"> XXL</label>
+
             </div>
+
             <div class="colors-section">
                 <p>Colors:</p>
 
                 <div>
                     <label for="color1">Color 1:</label>
-                    <input type="text" id="color1">
+                    <input type="text" id="color1" name="colors">
                 </div>
 
                 <div>
                     <label for="color2">Color 2:</label>
-                    <input type="text" id="color2">
+                    <input type="text" id="color2" name="colors">
                 </div>
 
                 <div>
                     <label for="color3">Color 3:</label>
-                    <input type="text" id="color3">
+                    <input type="text" id="color3" name="colors">
                 </div>
+
             </div>
         </div>
+
         <div class="upload-section">
             <label for="new-product-img">Upload Product Images: *</label>
-            <input id="new-product-img" type="file" multiple required accept="image/*">
+            <input id="new-product-img" name="images" type="file" multiple required accept="image/*">
         </div>
 
         <label for="vendor-new-product">Vendor:</label>
-        <input type="text" id="vendor-new-product">
+        <input type="text" id="vendor-new-product" name="vendor_name">
 
         <div class="center">
-            <input type="submit" value="Add Product" class="confirm-add-product-btn" onclick="confirmProduct()">
+            <input type="submit" value="Add Product" class="confirm-add-product-btn">
         </div>
+
     </form>
 </div>
 <div class="editProduct" id="editProduct">
@@ -93,66 +102,53 @@
     <p class="center-txt">Leave fields blank if you don't want to change them</p>
     <br>
 
-    <form class="editform">
+    <form class="editform" action="/update_product" method="POST">
+
+        <input type="hidden" name="product_id" id="edit-product-id">
 
         <label for="edit-product-name">Name of Product:</label>
-        <input id="edit-product-name" type="text">
+        <input id="edit-product-name" name="name" type="text">
 
         <label for="edit-product-price">Price of Product:</label>
-        <input id="edit-product-price" type="number">
+        <input id="edit-product-price" name="price" type="number" step="0.01">
 
         <div class="product-options">
             <div class="sizes-section">
                 <p>Sizes:</p>
-                <label><input type="checkbox" name="edit-sizes" value="S"> S</label><br>
-                <label><input type="checkbox" name="edit-sizes" value="M"> M</label><br>
-                <label><input type="checkbox" name="edit-sizes" value="L"> L</label><br>
-                <label><input type="checkbox" name="edit-sizes" value="XL"> XL</label><br>
-                <label><input type="checkbox" name="edit-sizes" value="XXL"> XXL</label>
+                <label><input type="checkbox" name="sizes" value="S"> S</label><br>
+                <label><input type="checkbox" name="sizes" value="M"> M</label><br>
+                <label><input type="checkbox" name="sizes" value="L"> L</label><br>
+                <label><input type="checkbox" name="sizes" value="XL"> XL</label><br>
+                <label><input type="checkbox" name="sizes" value="XXL"> XXL</label>
             </div>
+
             <div class="colors-section">
                 <p>Colors:</p>
-
-                <div>
-                    <label for="edit-color1">Color 1:</label>
-                    <input type="text" id="edit-color1">
-                </div>
-
-                <div>
-                    <label for="edit-color2">Color 2:</label>
-                    <input type="text" id="edit-color2">
-                </div>
-
-                <div>
-                    <label for="edit-color3">Color 3:</label>
-                    <input type="text" id="edit-color3">
-                </div>
+                <input type="text" name="colors" placeholder="Color 1">
+                <input type="text" name="colors" placeholder="Color 2">
+                <input type="text" name="colors" placeholder="Color 3">
             </div>
         </div>
-        <div class="upload-section">
-            <label for="edit-product-img">Upload New Images:</label>
-            <input id="edit-product-img" type="file" multiple accept="image/*">
-        </div>
-
-        <label for="edit-vendor-product">Vendor:</label>
-        <input type="text" id="edit-vendor-product">
 
         <div class="center">
-            <input type="submit" value="Update Product" class="confirm-add-product-btn" onclick="confirmEdit()">
+            <input type="submit" value="Update Product" class="confirm-add-product-btn">
         </div>
     </form>
 </div>
 <div class="deleteProduct" id="deleteProduct">
-    <h1 class="delete-product-txt">Are you sure you want to delete this product? This cannot be undone.</h1>
+    <form action="/delete_product" method="POST">
+    <input type="hidden" name="product_id" id="delete-product-id">
+    <h1 class="delete-product-txt">
+        Are you sure you want to delete this product? This cannot be undone.</h1>
     <div class="delete-btn-grid">
-        <input type="submit" value="Delete Product" class="confirm-add-product-btn" onclick="confirmDelete()">
-        <input type="submit" value="Cancel" class="confirm-add-product-btn" onclick="exitDelete()">
+        <button type="submit" class="confirm-add-product-btn" onclick="confirmDelete()">Delete Product</button>
+        <button type="button" class="confirm-add-product-btn" onclick="exitDelete()">Cancel</button>
     </div>
+</form>
 
 </div>  
 <div class="products-main-grid">
     <div>
-        {# {% if session.get('username') %} #}
         <p class="filter_title">Filters:</p>
         <label for="vendor_sort">Vendor:</label>
         <select id="vendor_sort" name="vendor_sort">
@@ -161,10 +157,9 @@
             {% endfor %}
         </select><br>
         <button onclick="resetProducts()" id="product-reset">Reset</button><br>
-        {# {% endif %} #}
-        {# {% if session.get('username') %} #}
-        <a class="add-product-btn" onclick="addProduct()">Add Product</a>
-        {# {% endif %} #}
+        {% if session['role'] in ['vendor', 'admin'] %}
+            <a class="add-product-btn" onclick="addProduct()">Add Product</a>
+        {% endif %}
     </div>
     <div class="products">
         <div>
@@ -180,12 +175,12 @@
                 <a onclick="popUp()">Add To Cart</a>
                 {# {% endif %} #}
             </div>
-            {# {% if session.get('username') %} #}
+            {% if session['role'] in ['vendor', 'admin'] %}
             <div class="product-btn-grid">
-                <a onclick="editProduct()">Edit Product</a>
-                <a onclick="deleteProduct()">Delete Product</a>
+                <a onclick="editProduct({{ product.product_id }})">Edit Product</a>
+                <a onclick="deleteProduct({{ product.product_id }})">Delete Product</a>
             </div>
-            {# {% endif %} #}
+            {% endif %}
         </div>
         <div>
             <p>PrimeWear Outlet</p>

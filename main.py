@@ -89,19 +89,64 @@ def products_page():
         text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")).fetchall()
     return render_template('products.html', vendors=vendors)
 
-@app.route('/add_product', methods = ['POST'])
+@app.route('/add_product', methods=['POST'])
 def add_product():
-    return render_template('products.html')
 
-@app.route('/add_to_cart', methods = ['POST']) #Handles adding the product to the cart
+    name = request.form.get('name')
+    price = request.form.get('price')
+
+    sizes = request.form.getlist('sizes')
+    colors = request.form.getlist('colors')
+
+    vendor_id = session.get('user_id')
+
+    sql = text("""
+        INSERT INTO product (name)
+        VALUES (:name)
+    """)
+
+    result = conn.execute(sql, {'name': name})
+    conn.commit()
+
+    product_id = result.lastrowid
+
+    sql2 = text("""
+        INSERT INTO vendor_product (vendor_id, product_id, price, available_inventory)
+        VALUES (:vendor_id, :product_id, :price, 100)
+    """)
+
+    conn.execute(sql2, {
+        'vendor_id': vendor_id,
+        'product_id': product_id,
+        'price': price
+    })
+
+    conn.commit()
+
+    for size in sizes:
+        conn.execute(text("""
+            INSERT INTO product_sizes (product_id, size)
+            VALUES (:pid, :size)
+        """), {'pid': product_id, 'size': size})
+
+    for color in colors:
+        if color.strip(): 
+            conn.execute(text("""
+                INSERT INTO product_colors (product_id, color)
+                VALUES (:pid, :color)
+            """), {'pid': product_id, 'color': color})
+    conn.commit()
+    return redirect(url_for('products_page'))
+
+@app.route('/add_to_cart', methods = ['POST']) 
 def add_to_cart():
     return render_template('products.html')
 
-@app.route('/send_review_complaint', methods = ['POST']) #Handles sending a review on the product
+@app.route('/send_review_complaint', methods = ['POST']) 
 def send_review_complaint():
     return render_template('products.html')
 
-@app.route('/send_chat', methods = ['POST']) #Hadles sending a chat to the vendor
+@app.route('/send_chat', methods = ['POST'])
 def send_chat():
     data = request.get_json()
 
@@ -143,19 +188,19 @@ def get_chat():
 
     return jsonify(result)
 
-@app.route('/update_product', methods = ['POST']) #Handles sending updated informartion 
+@app.route('/update_product', methods = ['POST']) 
 def update_product():
     return render_template('products.html')
 
-@app.route('/delete_product', methods = ['POST']) #Handles deleting the product 
+@app.route('/delete_product', methods = ['POST'])
 def delete_product():
     return render_template('products.html')
 
-@app.route('/cart', methods = ['GET', 'POST']) #Handles grabbing all the cart infrmation and sending the order to the admins
+@app.route('/cart', methods = ['GET', 'POST']) 
 def cart_page():
     return render_template('cart.html')
 
-@app.route('/account', methods = ['GET', 'POST']) #Handles getting the account info and sending new info if you chnage something in the account
+@app.route('/account', methods = ['GET', 'POST'])
 def account_page():
     if 'username' not in session:
         return redirect(url_for('login_register'))
@@ -215,18 +260,18 @@ def account_page():
 
     return render_template('account.html', user=user)
 
-@app.route('/admin_complaint', methods = ['GET', 'POST']) #Handles getting the reviews/complaints and sending the repsonse back to the customer
+@app.route('/admin_complaint', methods = ['GET', 'POST']) 
 def admin_complaint_page():
     return render_template('adminComplaint.html')
 
-@app.route('/vendor_chat', methods = ['GET', 'POST']) #Handles getting the the users and their chats and the vendor sending the chat back
+@app.route('/vendor_chat', methods = ['GET', 'POST'])
 def vendor_chat_page():
     vendors = conn.execute(
         text("SELECT account_id, username FROM accounts WHERE role = 'user'")
     ).fetchall()
     return render_template('vendorChat.html')
 
-@app.route('/admin_confirm_order', methods = ['GET', 'POST']) #Handles getting the orders and their info and sends backs the info for when the admin confirms it or denys it 
+@app.route('/admin_confirm_order', methods = ['GET', 'POST'])
 def admin_confirm_order_page():
     return render_template('adminConfirmOrder.html')
 
