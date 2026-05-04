@@ -17,9 +17,9 @@ header {
     justify-content: space-between;
 }
 
-header button {
+.logout-btn {
     width: 150px;
-    height: 40px;
+    padding: 5px;
     display: block;
     cursor: pointer;
     border: 2px solid #391361;
@@ -27,6 +27,8 @@ header button {
     background-color: #fff;
     border-radius: 10px;
     color: #391361;
+    text-align: center;
+    text-decoration: none;
 }
 
 .header-logo {
@@ -113,7 +115,7 @@ main {
 }
 
 .products div p {
-    text-indent: 30px
+    text-indent: 26px
 }
 
 .products div .product-vender-name, .product-vender-name {
@@ -345,6 +347,19 @@ main {
 .confirm:active, .confirm-add-product-btn:active, .add-product-btn:active, #product-reset:active {
     background-color: #391361;
     color: #fff;
+}
+
+.products div.name_id_grid {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+.prod-id {
+    font-size: 0.75em;
+    margin-right: 20px
 }
 
 footer {
@@ -1205,4 +1220,33 @@ textarea {
 
 .rating-area {
     margin-top: 15px;
+}
+
+
+.shirt-rating input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.shirt-rating label {
+    font-size: 4rem; 
+    cursor: pointer;
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+.shirt-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    gap: 5px;
+}
+
+.shirt-rating label:hover,
+.shirt-rating label:hover ~ label,
+.shirt-rating input:checked ~ label {
+    filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.5));
+
 }
