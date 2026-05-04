@@ -17,9 +17,9 @@ header {
     justify-content: space-between;
 }
 
-header button {
+.logout-btn {
     width: 150px;
-    height: 40px;
+    padding: 5px;
     display: block;
     cursor: pointer;
     border: 2px solid #391361;
@@ -27,6 +27,8 @@ header button {
     background-color: #fff;
     border-radius: 10px;
     color: #391361;
+    text-align: center;
+    text-decoration: none;
 }
 
 .header-logo {
