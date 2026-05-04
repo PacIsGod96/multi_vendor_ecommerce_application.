@@ -6,16 +6,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!chatMessages || !input || !sendBtn) return;
 
     const currentUserId = window.currentUserId;
-    const vednotId = window.vendorId;
+    const chatPartnerId = window.vendorId;
 
-    function renderMessages() {
+    function renderMessages(messages) {
         chatMessages.innerHTML = "";
 
         messages.forEach(msg => {
             const div = document.createElement("div");
             div.classList.add("message");
 
-            if (msg.sender_id === currentUserId) {
+            if (Number(msg.sender_id) === Number(currentUserId)) {
                 div.classList.add("vendor");
             } else {
                 div.classList.add("customer")
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function loadMessages() {
-        const res = await fetch(`/get_chat?user1=${currentUserId}&user2=${vendorId}`)
+        const res = await fetch(`/get_chat?user1=${currentUserId}&user2=${chatPartnerId}`)
         const data = await res.json();
         renderMessages(data);
     }
@@ -38,14 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         const text = input.value.trim();
-        if (!text) return;
+        if (!text || !chatPartnerId) return;
 
         await fetch("/send_chat", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 sender_id: currentUserId,
-                receiver_id: vendorId,
+                receiver_id: chatPartnerId,
                 text: text
             })
         })
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
         input.value = "";
         loadMessages();
     });
-    
+
     loadMessages();
 });
 
