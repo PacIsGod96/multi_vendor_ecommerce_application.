@@ -45,24 +45,22 @@ CREATE TABLE vendor_product (
     FOREIGN KEY (product_id) REFERENCES product(product_id)
 );
 
+DROP TABLE vendor_product_sizes;
+DROP TABLE vendor_product_colors;
+ALTER TABLE warranty DROP FOREIGN KEY warranty_ibfk_1;
+ALTER TABLE warranty DROP COLUMN vendor_id;
+ALTER TABLE warranty
+ADD FOREIGN KEY (product_id) REFERENCES product(product_id);
+ALTER TABLE discount_product DROP FOREIGN KEY discount_product_ibfk_2;
+ALTER TABLE discount_product DROP COLUMN vendor_id;
+ALTER TABLE discount_product
+ADD FOREIGN KEY (product_id) REFERENCES product(product_id);
+ALTER TABLE discounts DROP FOREIGN KEY discounts_ibfk_1;
+ALTER TABLE discounts DROP COLUMN vendor_id;
+DROP TABLE vendor_product;
+
 ALTER TABLE vendor_product
 DROP COLUMN warranty_period;
-
-CREATE TABLE vendor_product_sizes (
-	vendor_id INT NOT NULL,
-    product_id INT NOT NULL,
-    size VARCHAR(10) NOT NULL,
-    PRIMARY KEY (vendor_id, product_id, size),
-    FOREIGN KEY (vendor_id, product_id) REFERENCES vendor_product(vendor_id, product_id)
-);
-
-CREATE TABLE vendor_product_colors (
-	vendor_id INT NOT NULL,
-	product_id INT NOT NULL,
-    color VARCHAR(20) NOT NULL,
-    PRIMARY KEY (vendor_id, product_id, color),
-    FOREIGN KEY (vendor_id, product_id) REFERENCES vendor_product(vendor_id, product_id)
-);
 
 CREATE TABLE review (
 	review_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
@@ -84,7 +82,6 @@ CREATE TABLE chat (
     text TEXT,
     images JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
     FOREIGN KEY (sender_id) REFERENCES accounts(account_id),
     FOREIGN KEY (receiver_id) REFERENCES  accounts(account_id)
 );
