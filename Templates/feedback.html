@@ -1,25 +1,17 @@
 {% extends "template.html" %}
 
-{% block title %}Product Feedback{% endblock %}
+{% block title %}Dripster Feedback{% endblock %}
 
 {% block content %}
 <div class="review-section">
     <h2>Customer Feedback</h2>
 
-    <div class="reviews-list">  
-        {% for r in reviews %}  
-            <div class="review-card">  
-                <p><strong>{{ r.username }}</strong> <span class="review-rating">{{ "👕" * r.rating }}</span></p>  
-                <p>{{ r.content }}</p>  
-            </div>  
-        {% endfor %}  
-    </div>  
-
-    <form action="{{ url_for('send_review_complaint') }}" method="POST" class="professional-form">  
+    <form action="{{ url_for('send_review_complaint') }}" method="POST" class="professional-form" enctype="multipart/form-data">  
         
         <div class="form-group">
             <label for="category">Subject:</label>  
-            <select name="category" id="category" class="styled-select" onchange="toggleRatingSection()">  
+            <select name="category" id="category" class="styled-select" onchange="toggleFormPanels()">  
+                <option value="">-- Select a subject --</option>
                 <option value="Review">Product Review</option>  
                 <option value="Complaint">Complaint</option>  
                 <option value="Refund">Refund Request</option>  
@@ -27,7 +19,11 @@
             </select> 
         </div>
 
-        <div class="rating-area" style="display: none;">
+        <div id="panel-review" class="dynamic-panel" style="display: none;">
+            <div class="form-group">
+                <label for="product_id">Product ID:</label>
+                <input type="text" name="product_id" id="product_id" placeholder="12345">
+            </div>
             <div class="rating-container">  
                 <label>Rating:</label>  
                 <div class="shirt-rating">  
@@ -35,13 +31,34 @@
                     <input type="radio" name="rating" value="4" id="s4" onclick="showExplanation(4)"><label for="s4">👕</label>
                     <input type="radio" name="rating" value="3" id="s3" onclick="showExplanation(3)"><label for="s3">👕</label>
                     <input type="radio" name="rating" value="2" id="s2" onclick="showExplanation(2)"><label for="s2">👕</label>
-                    <input type="radio" name="rating" value="1" id="s1" onclick="showExplanation(1)" required><label for="s1">👕</label>
+                    <input type="radio" name="rating" value="1" id="s1" onclick="showExplanation(1)"><label for="s1">👕</label>
                 </div>  
             </div>
+            <div id="extra-feedback" class="form-group" style="display: none; margin-top: 15px;">
+                <label id="explanation-label" style="font-weight: bold; color: #ff4500;"></label>
+            </div>
+        </div>
 
-            <div id="extra-feedback" class="form-group" style="display: none;">
-                <label id="explanation-label" for="review_text">Explain your rating:</label>  
-                <textarea name="review_text" id="review_text" placeholder="Type here..."></textarea>  
+        <div id="panel-order-info" class="dynamic-panel" style="display: none;">
+            <div class="form-group">
+                <label for="order_id">Order ID:</label>
+                <input type="text" name="order_id" id="order_id" placeholder="Provided at checkout (e.g., ORD-12345)">
+            </div>
+        </div>
+
+        <div id="panel-message" class="dynamic-panel" style="display: none;">
+            <div class="form-group">
+                <label for="review_text">Message Details:</label>  
+                <textarea name="review_text" id="review_text" placeholder="Tell us more about your experience..."></textarea>  
+            </div>
+        </div>
+
+        <div id="panel-image" class="dynamic-panel" style="display: none;">
+            <div class="form-group">
+                <label>Attach a photo (Optional):</label>
+                <div class="image-upload-wrapper">
+                    <input type="file" name="image" id="image" accept="image/*" class="image-upload-btn">
+                </div>
             </div>
         </div>
 
