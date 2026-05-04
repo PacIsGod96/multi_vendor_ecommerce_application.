@@ -275,9 +275,46 @@ def vendor_chat_page():
 def admin_confirm_order_page():
     return render_template('adminConfirmOrder.html')
 
-@app.route('/feedback') 
+@app.route('/feedback', methods=['GET', 'POST'])
 def feedback_page():
-    return render_template('feedback.html') 
+    if request.method == 'POST':
+        category = request.form.get('category')
+        username = session.get('username')
+
+        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+        account_id = user_res['account_id'] if user_res else None
+
+        if category == 'Review':
+            sql = text("""
+                INSERT INTO review (name, description, stars, date, account_id, product_id)
+                VALUES (:name, :desc, :stars, CURDATE(), :uid, :pid)
+            """)
+            conn.execute(sql, {
+                'name': f"Review by {username}",
+                'desc': request.form.get('review_text'),
+                'stars': request.form.get('rating'),
+                'uid': account_id,
+                'pid': request.form.get('product_id')
+            })
+
+        elif category == 'Refund':
+            sql = text("""
+                INSERT INTO returns (name, description, date, status, account_id)
+                VALUES (:name, :desc, CURDATE(), 'pending', :uid)
+            """)
+            conn.execute(sql, {
+                'name': f"Return Request - Order {request.form.get('order_id')}",
+                'desc': request.form.get('review_text'),
+                'uid': account_id
+            })
+
+        elif category == 'Complaint':
+            print(f"Complaint received from {username}: {request.form.get('review_text')}")
+
+        conn.commit()
+        return redirect(url_for('feedback_page'))
+
+    return render_template('feedback.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
