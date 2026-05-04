@@ -1,4 +1,3 @@
-const { act } = require("react");
 
 console.log("JS LOADED")
 document.addEventListener("DOMContentLoaded", () => {
@@ -9,11 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if(!chats.length || !chatMessages || !input || !sendBtn) return;
 
-    const vendorId = window.currentUserId;
-    let activeUserId = null
+    const currentUserId = window.currentUserId;
+    let chatPartnerId = null
 
     async function loadChat(userId) {
-        const res = await fetch(`/get_chat?user1=${vendorId}&user2=${userId}`)
+        const res = await fetch(`/get_chat?user1=${currentUserId}&user2=${userId}`)
         const data = await res.json();
 
         chatMessages.innerHTML = "";
@@ -22,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const div = document.createElement("div");
             div.classList.add("message");
 
-            if (msg.sender_id === vendorId) {
+            if (Number(msg.sender_id) === Number(currentUserId)) {
                 div.classList.add("vendor");
             } else {
                 div.classList.add("customer");
@@ -37,21 +36,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     chats.forEach(chat => {
         chat.addEventListener("click", () => {
-            activeUserId = chat.dataset.userid;
+            chatPartnerId = chat.dataset.userid;
 
             chats.forEach(c => c.classList.remove("active"));
             chat.classList.add("active");
 
-            loadChat(activeUserId);
+            loadChat(chatPartnerId);
         });
     });
 
-    sendBtn.addEventListener("click", (e) => {
+    sendBtn.addEventListener("click", async (e) => {
         e.preventDefault();
 
         const text = input.value.trim();
 
-        if (!text || !activeUserId) return;
+        if (!text || !chatPartnerId) return;
 
         await fetch("/send_chat", {
             method: "POST",
@@ -59,13 +58,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                sender_id: vendorId,
-                receiver_id: activeUserId,
+                sender_id: currentUserId,
+                receiver_id: chatPartnerId,
                 text: text
             })
         });
 
         input.value = ""
-        loadChat(activeUserId)
+        loadChat(chatPartnerId)
     });
 });
