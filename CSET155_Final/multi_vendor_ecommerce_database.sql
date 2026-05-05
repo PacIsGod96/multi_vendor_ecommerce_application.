@@ -16,9 +16,7 @@ MODIFY last_name VARCHAR(50);
 
 CREATE TABLE product (
 	product_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    description TEXT,
-    images JSON
+    name VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE product_sizes (
@@ -32,16 +30,6 @@ CREATE TABLE product_colors (
 	product_id INT NOT NULL,
     color VARCHAR(30) NOT NULL,
     PRIMARY KEY (product_id, color),
-    FOREIGN KEY (product_id) REFERENCES product(product_id)
-);
-
-CREATE TABLE vendor_product (
-	vendor_id INT NOT NULL,
-    product_id INT NOT NULL,
-	price DECIMAL(10, 2) NOT NULL,
-    available_inventory INT NOT NULL,
-    PRIMARY KEY (vendor_id, product_id),
-    FOREIGN KEY (vendor_id) REFERENCES accounts(account_id),
     FOREIGN KEY (product_id) REFERENCES product(product_id)
 );
 
@@ -145,24 +133,6 @@ CREATE TABLE discount_product (
     FOREIGN KEY (vendor_id, product_id) REFERENCES vendor_product(vendor_id, product_id)
 );
 
--- Logan-- 
-INSERT INTO accounts (first_name, last_name, username, password, email_address, role) VALUES
-('Bob', 'Target', 'BobTarget', 'password', 'BobT@robmail.com', 'admin'),
-('John', 'Walmart', 'JohnWalmart', 'Password', 'JohnW@robmail.com', 'admin');
-
-INSERT INTO accounts (first_name, last_name, username, password, email_address, role) VALUES
-('Logan', 'Burkey', 'LoganBurkey', 'password', 'logan@robmail.com', 'user'),
-('Jackson', 'Patton', 'JacksonPatton', 'password', 'Jackson@robmail.com', 'user'),
-('Collin', 'Williams', 'CollinWilliams', 'password', 'Colin@robmail.com', 'user'),
-('Rob', 'Wiley', 'RobWiley', 'password', 'rob@robmail.com', 'user'),
-('The', 'Moy', 'TheMoy', 'password', 'Moy@robmail.com', 'user');
-
-INSERT INTO accounts (first_name, last_name, username, password, email_address, role) VALUES
-('Tech', 'World', 'TechWorld', 'password', 'tech@robmail.com', 'vendor'),
-('Home', 'Essentials', 'HomeEssentials', 'password', 'home@robmail.com', 'vendor'),
-('Gadget', 'Pro', 'GadgetPro', 'password', 'gadget@robmail.com', 'vendor');
-
-
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE discount_product;
 TRUNCATE TABLE discounts;
@@ -174,32 +144,18 @@ TRUNCATE TABLE product;
 TRUNCATE TABLE accounts;
 SET FOREIGN_KEY_CHECKS = 1;
 
-INSERT INTO accounts (first_name, last_name, username, password, email_address, role) VALUES
-('Collin', 'Willimas', 'LunarDrift', 'SixSeven67!', 'reallyck2997@tempmail.com', 'admin'),
-('Rob', 'Wiley', 'AtlasBloom', 'coffeeBreak99', 'neonwolf33@tempmail.com', 'admin'),
-('Logan', 'Burkey', 'HexFrost', 'midnightDrive6', 'sunsetcoder19@tempmail.com', 'admin' );
-
 SELECT * From accounts;
 
+SELECT * FROM product;
+
 - #5: "?" will be new value being checked - 
-SELECT * FROM accounts WHERE username IS NOT NULL;
 INSERT INTO accounts (first_name, last_name, username, password, email_address, role) VALUES ('user', 'create', 'createUser', 'pw', 'email', 'user');
-SELECT * FROM accounts WHERE username = "LoganBurkey" AND password = "password";
-SELECT * FROM accounts WHERE email_address = "logan@robmail.com" AND password = "password";
 INSERT INTO product (name, description, images) VALUES ('product', 'description', 'image');
 INSERT INTO vendor_product (vendor_id, product_id, price, available_inventory) VALUES (8, 69, 20, 200);
 UPDATE product SET name = 'product1', description = 'new', images = 'image1' WHERE product_id = 1;
 UPDATE vendor_product SET price = 70, available_inventory = 180 WHERE vendor_id = 8 AND product_id = 69;
 DELETE FROM product WHERE product_id = 69;
-SELECT * FROM product WHERE name LIKE CONCAT('%', ?, '%');
-SELECT * FROM product WHERE description LIKE CONCAT('%', ?, '%');
-SELECT product.* FROM product JOIN vendor_product  ON product.product_id = vendor_product.product_id WHERE vendor_product.vendor_id = 1;
-SELECT product.* FROM product JOIN product_colors ON product.product_id = product_colors.product_id WHERE product_colors.color = 1;
-SELECT product.* FROM product JOIN product_sizes ON product.product_id = product_sizes.product_id WHERE product_sizes.size = 'large';
-SELECT product.*, vendor_product.available_inventory
-FROM product JOIN vendor_product ON product.product_id = vendor_product.product_id WHERE vendor_product.available_inventory > 0;
 INSERT INTO cart (account_id, product_id, quantity) VALUES (1, 69, 4);
-SELECT * FROM cart WHERE account_id = 1;
 UPDATE cart SET quantity = 10 WHERE cart_item_id = 1;
 DELETE FROM cart WHERE cart_item_id = 1;
 CREATE TABLE wishlist (
@@ -210,25 +166,37 @@ CREATE TABLE wishlist (
     FOREIGN KEY (product_id) REFERENCES product(product_id)
 );
 INSERT INTO wishlist (account_id, product_id) VALUES (1, 69);
-SELECT * FROM wishlist WHERE account_id = 1;
 DELETE FROM wishlist WHERE wishlist_id = 1;
 INSERT INTO orders (account_id, date, status, total_price) VALUES (?, CURDATE(), 'pending', ?);
 UPDATE orders SET status = 'confirmed' WHERE order_id = 1;
 UPDATE orders SET status = ? WHERE order_id = 1;
-SELECT SUM(vendor_product.price * cart.quantity) AS total_price FROM cart JOIN vendor_product ON cart.product_id = vendor_product.product_id WHERE cart.account_id = 1;
 INSERT INTO review (name, description, stars, date, account_id, product_id) VALUES ("review", "description", 5, CURDATE(), 1, 69);
-SELECT * FROM review WHERE product_id = 69;
-SELECT * FROM review WHERE account_id = 1;
-SELECT * FROM review ORDER BY date DESC;
-SELECT * FROM review ORDER BY stars DESC;
 UPDATE review SET description = 'desc', stars = 4 WHERE review_id = 1;
 DELETE FROM review WHERE review_id = ?;
 INSERT INTO returns (name, description, date, status, account_id) VALUES ('name', 'desc', CURDATE(), 'pending', 1);
-UPDATE returns SET status = 'pending' WHERE return_id = 1;
-SELECT * FROM returns WHERE account_id = 1;
-SELECT warranty.*, orders.date AS purchase_date, DATE_ADD(orders.date, INTERVAL warranty.duration_months MONTH) AS expiry_date FROM warranty JOIN orders ON orders.account_id = ? WHERE warranty.product_id = ? HAVING CURDATE() <= expiry_date;
+UPDATE returns SET status = 'pending' WHERE return_id = 1;  
 INSERT INTO chat (text, images, account_id) VALUES ('text', 'img', 1);
-SELECT * FROM chat WHERE account_id = 1;
 DELETE FROM chat WHERE chat_id = 1;
 
-SELECT * FROM accounts;
+
+-- Rob  5/4: Run 183 - 195 --
+SET SQL_SAFE_UPDATES = 0;
+ALTER TABLE product DROP COLUMN description;
+CREATE TABLE product_images (
+    image_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT,
+    image_path VARCHAR(255)
+);
+ALTER TABLE product DROP COLUMN images;
+SET SQL_SAFE_UPDATES = 1;
+ALTER TABLE product ADD COLUMN vendor VARCHAR(40) NOT NULL;
+UPDATE product SET vendor = "Drip Market" WHERE product_id = 1;
+UPDATE product_images SET image_path = "DripPlazaTee3.png" WHERE image_id = 2;
+UPDATE product_images SET image_path = CONCAT('Images/', image_path) WHERE image_path NOT LIKE 'Images/%';
+ALTER TABLE product ADD COLUMN price INT NOT NULL;
+
+SELECT * FROM product;
+SELECT * FROM product_colors;
+SELECT * FROM product_images;
+SELECT * FROM product_sizes;
+DELETE FROM product_images WHERE product_id = 2;
