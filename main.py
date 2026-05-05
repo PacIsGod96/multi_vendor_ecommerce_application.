@@ -138,15 +138,15 @@ def add_product():
     conn.commit()
     return redirect(url_for('products_page'))
 
-@app.route('/add_to_cart', methods = ['POST']) #Handles adding the product to the cart
+@app.route('/add_to_cart', methods = ['POST']) 
 def add_to_cart():
     return render_template('products.html')
 
-@app.route('/send_review_complaint', methods = ['POST']) #Handles sending a review on the product
+@app.route('/send_review_complaint', methods = ['POST']) 
 def send_review_complaint():
     return render_template('products.html')
 
-@app.route('/send_chat', methods = ['POST']) #Hadles sending a chat to the vendor
+@app.route('/send_chat', methods = ['POST'])
 def send_chat():
     data = request.get_json()
 
@@ -188,19 +188,19 @@ def get_chat():
 
     return jsonify(result)
 
-@app.route('/update_product', methods = ['POST']) #Handles sending updated informartion 
+@app.route('/update_product', methods = ['POST']) 
 def update_product():
     return render_template('products.html')
 
-@app.route('/delete_product', methods = ['POST']) #Handles deleting the product 
+@app.route('/delete_product', methods = ['POST'])
 def delete_product():
     return render_template('products.html')
 
-@app.route('/cart', methods = ['GET', 'POST']) #Handles grabbing all the cart infrmation and sending the order to the admins
+@app.route('/cart', methods = ['GET', 'POST']) 
 def cart_page():
     return render_template('cart.html')
 
-@app.route('/account', methods = ['GET', 'POST']) #Handles getting the account info and sending new info if you chnage something in the account
+@app.route('/account', methods = ['GET', 'POST'])
 def account_page():
     if 'username' not in session:
         return redirect(url_for('login_register'))
@@ -260,17 +260,54 @@ def account_page():
 
     return render_template('account.html', user=user)
 
-@app.route('/admin_complaint', methods = ['GET', 'POST']) #Handles getting the reviews/complaints and sending the repsonse back to the customer
+@app.route('/admin_complaint', methods = ['GET', 'POST']) 
 def admin_complaint_page():
     return render_template('adminComplaint.html')
 
-@app.route('/admin_confirm_order', methods = ['GET', 'POST']) #Handles getting the orders and their info and sends backs the info for when the admin confirms it or denys it 
+@app.route('/admin_confirm_order', methods = ['GET', 'POST'])
 def admin_confirm_order_page():
     return render_template('adminConfirmOrder.html')
 
-@app.route('/feedback') 
+@app.route('/feedback', methods=['GET', 'POST'])
 def feedback_page():
-    return render_template('feedback.html') 
+    if request.method == 'POST':
+        category = request.form.get('category')
+        username = session.get('username')
+
+        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+        account_id = user_res['account_id'] if user_res else None
+
+        if category == 'Review':
+            sql = text("""
+                INSERT INTO review (name, description, stars, date, account_id, product_id)
+                VALUES (:name, :desc, :stars, CURDATE(), :uid, :pid)
+            """)
+            conn.execute(sql, {
+                'name': f"Review by {username}",
+                'desc': request.form.get('review_text'),
+                'stars': request.form.get('rating'),
+                'uid': account_id,
+                'pid': request.form.get('product_id')
+            })
+
+        elif category == 'Refund':
+            sql = text("""
+                INSERT INTO returns (name, description, date, status, account_id)
+                VALUES (:name, :desc, CURDATE(), 'pending', :uid)
+            """)
+            conn.execute(sql, {
+                'name': f"Return Request - Order {request.form.get('order_id')}",
+                'desc': request.form.get('review_text'),
+                'uid': account_id
+            })
+
+        elif category == 'Complaint':
+            print(f"Complaint received from {username}: {request.form.get('review_text')}")
+
+        conn.commit()
+        return redirect(url_for('feedback_page'))
+
+    return render_template('feedback.html')
 
 @app.route('/vendor_chat')
 def vendor_chat():
