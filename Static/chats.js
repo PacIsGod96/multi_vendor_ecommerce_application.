@@ -1,17 +1,27 @@
 
 console.log("JS LOADED")
+
+let currentUserId = null;
+let chatPartnerId = null;
+let chat_messages = null;
+let input = null;
+let sendBtn = null;
+
 document.addEventListener("DOMContentLoaded", () => {
     const chats = document.querySelectorAll(".chat_item");
-    const chatMessages = document.querySelector(".chat_messages");
-    const input = document.querySelector(".chat_input_bar input");
-    const sendBtn = document.querySelector(".chat_input_bar button")
+    const chatData = document.getElementById("chatData");
+    const chatContent = document.getElementById("chatContent")
+    chatMessages = document.querySelector(".chat_messages");
+    input = document.querySelector(".chat_input_bar input");
+    sendBtn = document.querySelector(".chat_input_bar button")
 
-    if(!chats.length || !chatMessages || !input || !sendBtn) return;
+    if(!chatMessages || !input || !sendBtn || !chatData) return;
 
-    const currentUserId = window.currentUserId;
-    let chatPartnerId = null
+    currentUserId = Number(chatData.dataset.userId);
 
     async function loadChat(userId) {
+        if (!userId) return;
+
         const res = await fetch(`/get_chat?user1=${currentUserId}&user2=${userId}`)
         const data = await res.json();
 
@@ -41,6 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
             chats.forEach(c => c.classList.remove("active"));
             chat.classList.add("active");
 
+            chatContent.classList.remove("hidden");
+            document.getElementById("chatPlaceholder").style.display = "none";
+
             loadChat(chatPartnerId);
         });
     });
@@ -65,6 +78,5 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         input.value = ""
-        loadChat(chatPartnerId)
     });
 });

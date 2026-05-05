@@ -150,8 +150,8 @@ def send_review_complaint():
 def send_chat():
     data = request.get_json()
 
-    sender_id = data['sender_id']
-    receiver_id = data['receiver_id']
+    sender_id = int(data['sender_id'])
+    receiver_id = int(data['receiver_id'])
     text_msg = data['text']
 
     sql = text("""
@@ -159,13 +159,12 @@ def send_chat():
         VALUES (:sender_id, :receiver_id, :text)
     """)
 
-    conn.execute(sql, {
-        "sender_id": sender_id,
-        "receiver_id": receiver_id,
-        "text": text_msg
-    })
-
-    conn.commit()
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            "sender_id": sender_id,
+            "receiver_id": receiver_id,
+            "text": text_msg
+        })
 
     return jsonify({"status": "success"})
 
@@ -181,10 +180,11 @@ def get_chat():
             OR (sender_id = :u2 AND receiver_id = :u1)
     """)
 
-    result = conn.execute(sql, {
-        "u1": user1,
-        "u2": user2
-    }).mappings().all()
+    with engine.begin() as conn:
+        result = conn.execute(sql, {
+            "u1": user1,
+            "u2": user2
+        }).mappings().all()
 
     return jsonify(result)
 
@@ -264,13 +264,6 @@ def account_page():
 def admin_complaint_page():
     return render_template('adminComplaint.html')
 
-@app.route('/vendor_chat', methods = ['GET', 'POST'])
-def vendor_chat_page():
-    vendors = conn.execute(
-        text("SELECT account_id, username FROM accounts WHERE role = 'user'")
-    ).fetchall()
-    return render_template('vendorChat.html')
-
 @app.route('/admin_confirm_order', methods = ['GET', 'POST'])
 def admin_confirm_order_page():
     return render_template('adminConfirmOrder.html')
@@ -315,6 +308,10 @@ def feedback_page():
         return redirect(url_for('feedback_page'))
 
     return render_template('feedback.html')
+
+@app.route('/vendor_chat')
+def vendor_chat():
+    return render_template('vendorChat.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
