@@ -180,7 +180,7 @@
                 <p>Drip Plaza Tee</p>
                 <p class="prod-id9">Product ID</p>
             </div>
-            <p class='product-vender-name' onclick="vendorChat()">By Drip Market</p>
+            <p class='product-vender-name' data-userid="5" data-vendorname="Drip Market" onclick="vendorChat(this)">By Drip Market</p>
             <div class="product-btn-grid">
                 <p>$16.99</p>
                 {# {% if session.get('username') %} #}
@@ -229,12 +229,13 @@
 <div id="vendorChat">
     <div class="chat-title-grid">
         <h2>Chatting With:</h2>
-        {# {% if session.get('username') %} #}
-        <h2>user</h2>
-        {# {% endif %} #}
+        {% if session.get('username') %}
+        <h2 id="chatVendorName">Select a vendor</h2>
+        {% endif %} 
+        <button class="chat-close-btn" onclick="closeChat()">X</button>
     </div>
     <div class="chat_messages" id="chat_messages_pop_up">
-                        
+
     </div>
     <div class="chat_input_bar chat-input-popup">
         <input type="text" placeholder="Type a message...">
