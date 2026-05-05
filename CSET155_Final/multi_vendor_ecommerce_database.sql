@@ -45,23 +45,6 @@ CREATE TABLE vendor_product (
     FOREIGN KEY (product_id) REFERENCES product(product_id)
 );
 
-DROP TABLE vendor_product_sizes;
-DROP TABLE vendor_product_colors;
-ALTER TABLE warranty DROP FOREIGN KEY warranty_ibfk_1;
-ALTER TABLE warranty DROP COLUMN vendor_id;
-ALTER TABLE warranty
-ADD FOREIGN KEY (product_id) REFERENCES product(product_id);
-ALTER TABLE discount_product DROP FOREIGN KEY discount_product_ibfk_2;
-ALTER TABLE discount_product DROP COLUMN vendor_id;
-ALTER TABLE discount_product
-ADD FOREIGN KEY (product_id) REFERENCES product(product_id);
-ALTER TABLE discounts DROP FOREIGN KEY discounts_ibfk_1;
-ALTER TABLE discounts DROP COLUMN vendor_id;
-DROP TABLE vendor_product;
-
-ALTER TABLE vendor_product
-DROP COLUMN warranty_period;
-
 CREATE TABLE review (
 	review_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 	name VARCHAR(50) NOT NULL,
@@ -174,11 +157,6 @@ TRUNCATE TABLE product;
 TRUNCATE TABLE accounts;
 SET FOREIGN_KEY_CHECKS = 1;
 
-INSERT INTO accounts (first_name, last_name, username, password, email_address, role) VALUES
-('Collin', 'Willimas', 'LunarDrift', 'SixSeven67!', 'reallyck2997@tempmail.com', 'admin'),
-('Rob', 'Wiley', 'AtlasBloom', 'coffeeBreak99', 'neonwolf33@tempmail.com', 'admin'),
-('Logan', 'Burkey', 'HexFrost', 'midnightDrive6', 'sunsetcoder19@tempmail.com', 'admin' );
-
 SELECT * From accounts;
 
 - #5: "?" will be new value being checked - 
@@ -230,5 +208,22 @@ SELECT warranty.*, orders.date AS purchase_date, DATE_ADD(orders.date, INTERVAL 
 INSERT INTO chat (text, images, account_id) VALUES ('text', 'img', 1);
 SELECT * FROM chat WHERE account_id = 1;
 DELETE FROM chat WHERE chat_id = 1;
-
 SELECT * FROM accounts;
+DROP TABLE vendor_product_sizes;
+DROP TABLE vendor_product_colors;
+ALTER TABLE warranty DROP FOREIGN KEY warranty_ibfk_1;
+ALTER TABLE warranty DROP COLUMN vendor_id;
+ALTER TABLE warranty
+ADD FOREIGN KEY (product_id) REFERENCES product(product_id);
+ALTER TABLE discount_product DROP FOREIGN KEY discount_product_ibfk_2;
+ALTER TABLE discount_product DROP COLUMN vendor_id;
+ALTER TABLE discount_product
+ADD FOREIGN KEY (product_id) REFERENCES product(product_id);
+ALTER TABLE discounts DROP FOREIGN KEY discounts_ibfk_1;
+ALTER TABLE discounts DROP COLUMN vendor_id;
+DROP TABLE vendor_product;
+ALTER TABLE vendor_product
+DROP COLUMN warranty_period;
+
+
+-- --Logan
