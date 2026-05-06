@@ -2,10 +2,11 @@ from flask import Flask, render_template, request, url_for, redirect, session, j
 from sqlalchemy import create_engine, text, bindparam
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import json
 
 app = Flask(__name__)
 
-app.secret_key = os.urandom(24)
+app.secret_key = app.secret_key = "JohnWalmart"
 
 conn_str = "mysql://root:cset155@localhost/multi_vendor_ecommerce"
 engine = create_engine(conn_str, echo=True)
@@ -54,7 +55,7 @@ def login():
     password = request.form.get('login_password')
 
     sql = text("""
-        SELECT username, password, role
+        SELECT account_id, username, password, role
         FROM accounts
         WHERE username = :Username
     """)
@@ -67,6 +68,7 @@ def login():
         role = result['role']
 
         if check_password_hash(stored_password, password):
+            session['user_id'] = result['account_id']
             session['username'] = result['username']
             session['role'] = role
 
@@ -83,90 +85,77 @@ def logout():
     session.clear()
     return redirect(url_for('login_register'))
 
-@app.route('/products', methods = ['GET']) #Handles getting all of the products and their info
+@app.route('/products', methods=['GET'])
 def products_page():
+
+    rows = conn.execute(text("""
+        SELECT 
+            p.product_id,
+            p.name,
+            p.vendor,
+            p.price,
+            a.username AS vendor_name,
+            pi.image_path
+        FROM product p
+        LEFT JOIN product_images pi 
+            ON p.product_id = pi.product_id
+        LEFT JOIN accounts a
+            ON p.vendor = a.account_id
+    """)).mappings().all()
+
+    sizes_rows = conn.execute(text("""
+        SELECT product_id, size FROM product_sizes
+    """)).mappings().all()
+
+    colors_rows = conn.execute(text("""
+        SELECT product_id, color FROM product_colors
+    """)).mappings().all()
+
     vendors = conn.execute(
-        text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")).fetchall()
-    return render_template('products.html', vendors=vendors)
+        text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
+    ).mappings().all()
 
-@app.route('/add_product', methods=['POST'])
-def add_product():
+    products_dict = {}
 
-    name = request.form.get('name')
-    price = request.form.get('price')
+    for row in rows:
+        pid = row["product_id"]
 
-    sizes = request.form.getlist('sizes')
-    colors = request.form.getlist('colors')
+        if pid not in products_dict:
+            products_dict[pid] = {
+                "product_id": pid,
+                "name": row["name"],
+                "price": row["price"],
+                "vendor": row["vendor_name"],
+                "images": [],
+                "sizes": [],
+                "colors": []
+            }
 
-    vendor_id = session.get('user_id')
+        if row["image_path"]:
+            products_dict[pid]["images"].append(row["image_path"])
 
-    sql = text("""
-        INSERT INTO product (name)
-        VALUES (:name)
-    """)
+    for s in sizes_rows:
+        pid = s["product_id"]
+        if pid in products_dict:
+            products_dict[pid]["sizes"].append(s["size"])
 
-    result = conn.execute(sql, {'name': name})
-    conn.commit()
+    for c in colors_rows:
+        pid = c["product_id"]
+        if pid in products_dict:
+            products_dict[pid]["colors"].append(c["color"])
 
-    product_id = result.lastrowid
+    products = list(products_dict.values())
 
-    sql2 = text("""
-        INSERT INTO vendor_product (vendor_id, product_id, price, available_inventory)
-        VALUES (:vendor_id, :product_id, :price, 100)
-    """)
+    for p in products:
+        if not p["images"]:
+            p["images"] = ["Images/default.png"]
 
-    conn.execute(sql2, {
-        'vendor_id': vendor_id,
-        'product_id': product_id,
-        'price': price
-    })
-
-    conn.commit()
-
-    for size in sizes:
-        conn.execute(text("""
-            INSERT INTO product_sizes (product_id, size)
-            VALUES (:pid, :size)
-        """), {'pid': product_id, 'size': size})
-
-    for color in colors:
-        if color.strip(): 
-            conn.execute(text("""
-                INSERT INTO product_colors (product_id, color)
-                VALUES (:pid, :color)
-            """), {'pid': product_id, 'color': color})
-    conn.commit()
-    return redirect(url_for('products_page'))
-
-@app.route('/add_to_cart', methods = ['POST']) 
-def add_to_cart():
-    return render_template('products.html')
-
-@app.route('/send_review_complaint', methods = ['POST']) 
-def send_review_complaint():
-    return render_template('products.html')
-
-@app.route('/send_chat', methods = ['POST'])
-def send_chat():
-    data = request.get_json()
-
-    sender_id = int(data['sender_id'])
-    receiver_id = int(data['receiver_id'])
-    text_msg = data['text']
-
-    sql = text("""
-        INSERT INTO chat (sender_id, receiver_id, text)
-        VALUES (:sender_id, :receiver_id, :text)
-    """)
-
-    with engine.begin() as conn:
-        conn.execute(sql, {
-            "sender_id": sender_id,
-            "receiver_id": receiver_id,
-            "text": text_msg
-        })
-
-    return jsonify({"status": "success"})
+    return render_template(
+        "products.html",
+        products=products,
+        vendors=vendors,
+        products_json=json.dumps(products)
+    )
 
 @app.route('/get_chat', methods=['GET'])
 def get_chat():
@@ -180,21 +169,248 @@ def get_chat():
             OR (sender_id = :u2 AND receiver_id = :u1)
     """)
 
+    result = conn.execute(sql, {
+        "u1": user1,
+        "u2": user2
+    }).mappings().all()
+
+    return jsonify(result)
+
+@app.route('/add_product', methods=['POST'])
+def add_product():
+
+    if 'user_id' not in session:
+        return redirect(url_for('login_register'))
+
+    name = request.form.get('name')
+    price = request.form.get('price')
+    sizes = request.form.getlist('sizes')
+    colors = request.form.getlist('colors')
+    images = request.form.getlist('images')  
+
+    vendor = request.form.get('vendor')
+
+    
+    result = conn.execute(text("""
+        INSERT INTO product (name, vendor, price)
+        VALUES (:name, :vendor, :price)
+    """), {
+        'name': name,
+        'vendor': vendor,
+        'price': price
+    })
+
+    product_id = result.lastrowid
+
+    
+    for size in sizes:
+        conn.execute(text("""
+            INSERT INTO product_sizes (product_id, size)
+            VALUES (:pid, :size)
+        """), {
+            'pid': product_id,
+            'size': size
+        })
+
+
+    for color in colors:
+        if color.strip():
+            conn.execute(text("""
+                INSERT INTO product_colors (product_id, color)
+                VALUES (:pid, :color)
+            """), {
+                'pid': product_id,
+                'color': color
+            })
+
+    import os
+
+    for img in images:
+        if img.strip():
+            filename = os.path.basename(img)  
+            path = f"Images/{filename}"       
+
+            conn.execute(text("""
+                INSERT INTO product_images (product_id, image_path)
+                VALUES (:pid, :path)
+            """), {
+                'pid': product_id,
+                'path': path
+            })
+
+    conn.commit()
+    return redirect(url_for('products_page'))
+
+@app.route('/update_product', methods=['POST'])
+def update_product():
+    if 'user_id' not in session:
+        return redirect(url_for('login_register'))
+
+    # Retrieve form data
+    product_id_raw = request.form.get('product_id')
+    user_role = session.get('role')
+    user_id = session.get('user_id')
+
+    # DEBUG PRINT: Check what is actually coming from the browser
+    print(f"DEBUG: Received product_id_raw = '{product_id_raw}' (type: {type(product_id_raw)})")
+    print(f"DEBUG: Logged in user_id = {user_id}, role = {user_role}")
+    
+    if not product_id_raw or not product_id_raw.strip():
+        return "Error: product_id is missing or empty in the form submission!", 400
+
+    try:
+        # Cast to integer to match MySQL INT column type
+        product_id = int(product_id_raw)
+    except ValueError:
+        return f"Error: product_id '{product_id_raw}' is not a valid number!", 400
+
+    # Security: Ensure product exists and user has permission to edit it
+    owner_check = conn.execute(text("""
+        SELECT vendor FROM product WHERE product_id = :pid
+    """), {'pid': product_id}).mappings().fetchone()
+
+    # DEBUG PRINT: See what the database returned
+    print(f"DEBUG: Database owner_check result = {owner_check}")
+
+    if not owner_check:
+        return f"Product not found (Searched for product_id: {product_id})", 404
+
+    # Ensure authorization
+    if user_role != 'admin' and owner_check['vendor'] != user_id:
+        return "Unauthorized", 403
+
+    name = request.form.get('name')
+    price = request.form.get('price')
+    sizes = request.form.getlist('sizes')
+    colors = request.form.getlist('colors')
+    images = request.form.getlist('images')
+
+    # 1. Update Name
+    if name and name.strip():
+        conn.execute(text("""
+            UPDATE product
+            SET name = :name
+            WHERE product_id = :pid
+        """), {'name': name, 'pid': product_id})
+
+    # 2. Update Price
+    if price and price.strip():
+        conn.execute(text("""
+            UPDATE product
+            SET price = :price
+            WHERE product_id = :pid
+        """), {'price': price, 'pid': product_id})
+
+    # 3. Update Sizes
+    if sizes:
+        conn.execute(text("""
+            DELETE FROM product_sizes
+            WHERE product_id = :pid
+        """), {'pid': product_id})
+        
+        for size in sizes:
+            if size.strip():
+                conn.execute(text("""
+                    INSERT INTO product_sizes (product_id, size)
+                    VALUES (:pid, :size)
+                """), {'pid': product_id, 'size': size})
+
+    # 4. Update Colors
+    active_colors = [c.strip() for c in colors if c.strip()]
+    if active_colors:
+        conn.execute(text("""
+            DELETE FROM product_colors
+            WHERE product_id = :pid
+        """), {'pid': product_id})
+
+        for color in active_colors:
+            conn.execute(text("""
+                INSERT INTO product_colors (product_id, color)
+                VALUES (:pid, :color)
+            """), {'pid': product_id, 'color': color})
+
+    # 5. Update Images
+    active_images = [img.strip() for img in images if img.strip()]
+    if active_images:
+        conn.execute(text("""
+            DELETE FROM product_images
+            WHERE product_id = :pid
+        """), {'pid': product_id})
+
+        for img in active_images:
+            filename = os.path.basename(img)
+            path = f"Images/{filename}"
+            conn.execute(text("""
+                INSERT INTO product_images (product_id, image_path)
+                VALUES (:pid, :path)
+            """), {'pid': product_id, 'path': path})
+            
+    sender_id = int(data['sender_id'])
+    receiver_id = int(data['receiver_id'])
+    text_msg = data['text']
+
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            "sender_id": sender_id,
+            "receiver_id": receiver_id,
+            "text": text_msg
+        })
+            
     with engine.begin() as conn:
         result = conn.execute(sql, {
             "u1": user1,
             "u2": user2
         }).mappings().all()
 
-    return jsonify(result)
+    conn.commit()
+    return redirect(url_for('products_page'))
 
-@app.route('/update_product', methods = ['POST']) 
-def update_product():
-    return render_template('products.html')
-
-@app.route('/delete_product', methods = ['POST'])
+@app.route('/delete_product', methods=['POST'])
 def delete_product():
-    return render_template('products.html')
+
+    if 'user_id' not in session:
+        return redirect(url_for('login_register'))
+
+    product_id = request.form.get('product_id')
+    role = session.get('role')
+
+    if not product_id:
+        return "Missing product_id", 400
+
+    # Optional safety: ensure only admin OR owner vendor can delete
+    if role not in ['admin', 'vendor']:
+        return "Unauthorized", 403
+
+    # If vendor, ensure they own the product
+    if role == 'vendor':
+        owner = conn.execute(text("""
+            SELECT vendor FROM product WHERE product_id = :pid
+        """), {'pid': product_id}).mappings().fetchone()
+
+        if not owner or owner['vendor'] != session.get('user_id'):
+            return "Not your product", 403
+
+    # Delete in correct order (child tables first)
+    conn.execute(text("""
+        DELETE FROM product_images WHERE product_id = :pid
+    """), {'pid': product_id})
+
+    conn.execute(text("""
+        DELETE FROM product_sizes WHERE product_id = :pid
+    """), {'pid': product_id})
+
+    conn.execute(text("""
+        DELETE FROM product_colors WHERE product_id = :pid
+    """), {'pid': product_id})
+
+    conn.execute(text("""
+        DELETE FROM product WHERE product_id = :pid
+    """), {'pid': product_id})
+
+    conn.commit()
+
+    return redirect(url_for('products_page'))
+
 
 @app.route('/cart', methods = ['GET', 'POST']) 
 def cart_page():
@@ -263,6 +479,14 @@ def account_page():
 @app.route('/admin_complaint', methods = ['GET', 'POST']) 
 def admin_complaint_page():
     return render_template('adminComplaint.html')
+
+@app.route('/vendor_chat', methods=['GET', 'POST'])
+def vendor_chat_page():
+    vendors = conn.execute(
+        text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
+    ).fetchall()
+
+    return render_template('vendorChat.html', vendors=vendors)
 
 @app.route('/admin_confirm_order', methods = ['GET', 'POST'])
 def admin_confirm_order_page():
