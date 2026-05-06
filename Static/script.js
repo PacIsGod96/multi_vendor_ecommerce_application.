@@ -61,9 +61,47 @@ function confirmProduct() {
     addWindow.style.display = 'none';
 }
 
-function editProduct() {
+function editProduct(product) {
+    // 1. Show the edit modal window
     const editWindow = document.getElementById('editProduct');
     editWindow.style.display = 'block';
+
+    // 2. Set only the hidden ID field (required so Flask knows which row to update)
+    document.getElementById('edit_product_id').value = product.product_id;
+
+    // 3. Reset form fields so they start completely blank (enabling partial updates)
+    document.getElementById('edit_name').value = "";
+    document.getElementById('edit_name').placeholder = `Current: ${product.name}`;
+    
+    document.getElementById('edit_price').value = "";
+    document.getElementById('edit_price').placeholder = `Current: $${product.price}`;
+
+    // 4. Uncheck all sizes so they don't overwrite current configurations by accident
+    const possibleSizes = ['S', 'M', 'L', 'XL', 'XXL'];
+    possibleSizes.forEach(size => {
+        const checkbox = document.getElementById(`size_${size}`);
+        if (checkbox) {
+            checkbox.checked = false; 
+        }
+    });
+
+    // 5. Clear old values in colors text inputs
+    for (let i = 0; i < 3; i++) {
+        const colorInput = document.getElementById(`edit_color_${i}`);
+        if (colorInput) {
+            colorInput.value = "";
+            colorInput.placeholder = product.colors[i] ? `Current: ${product.colors[i]}` : "Add new color";
+        }
+    }
+
+    // 6. Clear old values in image text inputs
+    for (let i = 0; i < 3; i++) {
+        const imageInput = document.getElementById(`edit_image_${i}`);
+        if (imageInput) {
+            imageInput.value = "";
+            imageInput.placeholder = product.images[i] ? `Current: ${product.images[i]}` : "Add new image path";
+        }
+    }
 }
 
 function confirmEdit() {
@@ -86,11 +124,6 @@ function exitDelete() {
     deleteWindow.style.display = "none"    
 }
 
-function vendorChat() {
-    const chatWindow = document.getElementById('vendorChat');
-    chatWindow.style.display = 'block'
-}
- 
 function showConfirm() {
     document.getElementById("cartPage").classList.add("hidden");
     document.getElementById("confirmOrderPage").classList.remove("hidden");

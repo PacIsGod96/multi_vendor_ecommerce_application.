@@ -27,10 +27,14 @@
         <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/products">Products</a></li>
-            <li><a href="/account">Account</a></li>
+            {% if session.get('role') in ['admin']%}
             <li id="complaints-link"><a href="/admin_compliant">Complaints</a></li>
             <li id="orders-link"><a href="/admin_confirm_order">Orders</a></li>
-            <li id="chat-link"><a href="/vender_chat">Chat</a></li>
+            {% endif %}
+            {% if session.get('role') in ['vendor']%}
+            <li id="chat-link"><a href="/vendor_chat">Chat</a></li>
+            {% endif %}
+            <li><a href="/account">Account</a></li>
         </ul>
     </nav>
     {% endif %}
@@ -47,7 +51,7 @@
                     <li><a href="/">Home</a></li>
                     <li><a href="/products">Products</a></li>
                     <li><a href="/account">Account</a></li>
-                  <li><a href="/feedback">Feedback</a></li>
+                    <li><a href="/feedback">Feedback</a></li>
                 </ul>
             </div>
             {% endif %}
