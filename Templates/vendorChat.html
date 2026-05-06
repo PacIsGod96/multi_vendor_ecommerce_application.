@@ -4,8 +4,7 @@
 
 {% block content %}
 <div class="vendor_chat_div">
-    <div id="chatData" data-user-id="{{ session.get('account_id') }}"></div> 
-    <form action="/vendor_chat" id="vendor_chat_form" method="POST">
+    <div id="chatData" data-user-id="{{ session.get('user_id') }}"></div> 
         <div class="vendor_chat_panels">
             <div class="vendor_inbox">
                 <div class="vendor_inbox_label">
@@ -32,7 +31,6 @@
                 </div>
             </div>
         </div>
-    </form>
 
     <script src="{{ url_for('static', filename='chats.js')}}"></script>
 </div>
