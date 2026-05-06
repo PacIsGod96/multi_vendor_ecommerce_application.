@@ -5,10 +5,10 @@
 {% block content %}
 
 <h2 class="center-txt">Our Products</h2>
-<div class="pop-up" id="pop-up">
+<div class="pop-up" id="pop-up" style="display:none;">
     
     <div class="pop-up-carosel" id="popup-images">
-        <!-- images injected here -->
+        <!-- images injected -->
     </div>
 
     <div class="pop-up-grid">
@@ -19,20 +19,22 @@
         </div>
 
         <div>
-            <label for="popup-color">Select Color:</label>
-            <select name="color" id="popup-color">
-                <!-- injected -->
-            </select>
+            <label>Select Color:</label>
+            <select id="popup-color"></select>
         </div>
 
         <div>
-            <label for="popup-size">Select Size:</label>
-            <select name="size" id="popup-size">
-                <!-- injected -->
-            </select>
+            <label>Select Size:</label>
+            <select id="popup-size"></select>
+        </div>
+
+        <div>
+            <label>Quantity:</label>
+            <input type="number" id="popup-qty" value="1" min="1">
         </div>
     </div>
     <button class="confirm" onclick="confirmAdd()">Confirm & Add</button>
+    <button onclick="closePopup()">Close</button>
 </div>
 <div class="addProduct" id="addProduct" style="display: none;">
     <h1 class="add-product-title">Add Product</h1>
@@ -77,8 +79,8 @@
             <label>Image 3:</label>
             <input type="text" name="images" placeholder="Images/name.type">
         </div>
-
-        <label>Vendor:</label>
+        
+    <label>Vendor:</label>
         <select id="vendor" name="vendor">
             {% for vendor in vendors %}
                 <option value="{{ vendor.account_id }}">{{ vendor.username }}</option>
@@ -176,11 +178,11 @@
                 <p class="prod-id9">ID: {{ product.product_id }}</p>
             </div>
 
-            <p class='product-vender-name' onclick="vendorChat()" data-userid="{{ product.vendor_id }}" data-vendorname="{{ product.vendor_name }}">By {{ product.vendor }}</p>
-      
+            <p class='product-vendor-name' onclick="vendorChat(this)" data-userid="{{ product.vendor_id }}" data-vendorname="{{ product.vendor }}">By {{ product.vendor }}</p>
+
             <div class="product-btn-grid">
                 <p>${{ product.price }}.00</p>
-                <a onclick="popUp()">Add To Cart</a>
+                <a onclick='popUp({{ product|tojson }})'>Add To Cart</a>
             </div>
 
             {% if session.get('role') in ['vendor', 'admin'] %}
@@ -212,13 +214,15 @@
 
     </div>
 
-    <div class="chat_messages" id="chat_messages_pop_up"></div>
-
     <div class="chat_input_bar chat-input-popup">
         <input type="text" placeholder="Type a message...">
         <button type="button">Send</button>
     </div>
 </div>
+
+<script>
+    window.currentUserId = {{ session.get('user_id') or 'null'}}
+</script>
 
 <script src="{{ url_for('static', filename='pop_up_chat.js')}}"></script>
 {% endblock %}
