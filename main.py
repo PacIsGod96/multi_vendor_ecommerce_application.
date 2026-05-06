@@ -474,9 +474,23 @@ def vendor_chat_page():
 
     return render_template('vendorChat.html', vendors=vendors)
 
-@app.route('/admin_confirm_order', methods = ['GET', 'POST'])
+@app.route('/admin_confirm_order', methods=['GET', 'POST'])
 def admin_confirm_order_page():
-    return render_template('adminConfirmOrder.html')
+    if request.method == 'POST':
+        order_id = request.form.get('order_id')
+        sql = text("UPDATE orders SET status = 'confirmed' WHERE order_id = :oid")
+        conn.execute(sql, {"oid": order_id})
+        conn.commit()
+        return "Success", 200
+    orders_query = text("""
+        SELECT order_id, account_id, date, total_price 
+        FROM orders 
+        WHERE status = 'pending'
+    """)
+    orders = conn.execute(orders_query).mappings().fetchall()
+
+    return render_template('adminConfirmOrder.html', orders=orders)
+
 
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback_page():
@@ -524,4 +538,27 @@ def vendor_chat():
     return render_template('vendorChat.html')
 
 if __name__ == '__main__':
+    app.run(debug=True)
+
+@app.route('/create_order', methods=['POST'])
+def create_order():
+    account_id = request.form.get('account_id')
+    total_price = request.form.get('total_price')
+
+    sql = text("""
+        INSERT INTO orders (account_id, date, status, total_price)
+        VALUES (:account_id, CURDATE(), 'pending', :total_price)
+    """)
+
+    conn.execute(sql, {
+        "account_id": account_id,
+        "total_price": total_price
+    })
+    conn.commit()
+
+    return jsonify({"status": "order_created"}), 200
+
+
+# ⬇️ THIS MUST ALWAYS BE LAST ⬇️
+if __name__ == "__main__":
     app.run(debug=True)
