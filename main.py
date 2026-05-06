@@ -131,6 +131,17 @@ def products_page():
                 "colors": []
             }
 
+        sizes = conn.execute(text("""
+            SELECT size FROM product_sizes WHERE product_id = :pid
+        """), {'pid': pid}).fetchall()
+
+        colors = conn.execute(text("""
+            SELECT color FROM product_colors WHERE product_id = :pid
+        """), {'pid': pid}).fetchall()
+
+        products_dict[pid]["sizes"] = [s[0] for s in sizes]
+        products_dict[pid]["colors"] = [c[0] for c in colors]
+
         if row["image_path"]:
             products_dict[pid]["images"].append(row["image_path"])
 
