@@ -5,8 +5,8 @@
 {% block content %}
 
 <h2 class="center-txt">Our Products</h2>
-<div class="pop-up" id="pop-up" style="display:none;">
-    
+<div class="pop-up" id="pop-up">
+    <button onclick="closePopup()" class="close-pop-up">X</button>
     <div class="pop-up-carosel" id="popup-images">
         <!-- images injected -->
     </div>
@@ -34,9 +34,9 @@
         </div>
     </div>
     <button class="confirm" onclick="confirmAdd()">Confirm & Add</button>
-    <button onclick="closePopup()">Close</button>
 </div>
-<div class="addProduct" id="addProduct" style="display: none;">
+<div class="addProduct" id="addProduct">
+    <button onclick="confirmProduct()" class="close-pop-up">X</button>
     <h1 class="add-product-title">Add Product</h1>
     <p class="center-txt">* - Required</p><br>
     <form class="addform" action="/add_product" method="POST">
@@ -92,7 +92,8 @@
         </div>
     </form>
 </div>
-<div class="addProduct" id="editProduct" style="display: none;">
+<div class="addProduct" id="editProduct">
+    <button onclick="confirmEdit()" class="close-pop-up">X</button>
     <h1 class="add-product-title">Edit Product</h1>
     <p class="center-txt">Leave fields blank to keep current settings</p><br>
     <form class="addform" action="/update_product" method="POST">
@@ -148,7 +149,7 @@
 </div>
 <div class="products-main-grid">
 
-    <div>
+    <div id="filter-div">
         <p class="filter_title">Filters:</p>
 
         <label>Vendor:</label>
@@ -167,12 +168,7 @@
     <div class="products">
         {% for product in products %}
         <div>
-            {% if product.images and product.images|length > 0 %}
                 <img src="{{ url_for('static', filename=product.images[0]) }}" alt="product">
-            {% else %}
-                <img src="{{ url_for('static', filename='Images/Drip Plaza Tee.jpg') }}" alt="product">
-            {% endif %}
-
             <div class="name_id_grid">
                 <p>{{ product.name }}</p>
                 <p class="prod-id9">ID: {{ product.product_id }}</p>

@@ -60,8 +60,6 @@ function popUp(product) {
         product.images.forEach(img => {
             const image = document.createElement("img");
             image.src = "/static/" + img;
-            image.style.width = "100px";
-            image.style.marginRight = "10px";
             imgContainer.appendChild(image);
         });
     }
@@ -96,6 +94,7 @@ function popUp(product) {
 function closePopup() {
     document.getElementById("pop-up").style.display = "none";
 }
+
 
 function confirmAdd() {
     const productName = document.getElementById("popup-name").innerText;
