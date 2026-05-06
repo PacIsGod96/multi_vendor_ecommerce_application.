@@ -34,6 +34,61 @@
     </div>
     <button class="confirm" onclick="confirmAdd()">Confirm & Add</button>
 </div>
+<div class="addProduct" id="addProduct" style="display: none;">
+    <h1 class="add-product-title">Add Product</h1>
+    <p class="center-txt">* - Required</p><br>
+    <form class="addform" action="/add_product" method="POST">
+        <label for="name">Name of Product: *</label>
+        <input name="name" type="text" required>
+        <label for="price">Price:</label>
+        <input name="price" type="number" required>
+        <div class="product-options">
+
+            <div class="sizes-section">
+                <p>Sizes:</p>
+                <label><input type="checkbox" name="sizes" value="S"> S</label><br>
+                <label><input type="checkbox" name="sizes" value="M"> M</label><br>
+                <label><input type="checkbox" name="sizes" value="L"> L</label><br>
+                <label><input type="checkbox" name="sizes" value="XL"> XL</label><br>
+                <label><input type="checkbox" name="sizes" value="XXL"> XXL</label>
+            </div>
+            <div class="colors-section">
+                <p>Colors:</p>
+                <div>
+                    <label>Color 1:</label>
+                    <input type="text" name="colors">
+                </div>
+                <div>
+                    <label>Color 2:</label>
+                    <input type="text" name="colors">
+                </div>
+                <div>
+                    <label>Color 3:</label>
+                    <input type="text" name="colors">
+                </div>
+            </div>
+        </div>
+        <div class="upload-section">
+            <p>Product Images (static paths):</p>
+            <label>Image 1:</label>
+            <input type="text" name="images" placeholder="Images/name.type">
+            <label>Image 2:</label>
+            <input type="text" name="images" placeholder="Images/name.type">
+            <label>Image 3:</label>
+            <input type="text" name="images" placeholder="Images/name.type">
+        </div>
+    <label>Vendor:</label>
+        <select id="vendor" name="vendor">
+            {% for vendor in vendors %}
+                <option value="{{ vendor.account_id }}">{{ vendor.username }}</option>
+            {% endfor %}
+        </select>
+
+        <div class="center">
+            <input type="submit" value="Add Product" class="confirm-add-product-btn">
+        </div>
+    </form>
+</div>
 <div class="addProduct" id="editProduct" style="display: none;">
     <h1 class="add-product-title">Edit Product</h1>
     <p class="center-txt">Leave fields blank to keep current settings</p><br>
@@ -120,8 +175,8 @@
                 <p class="prod-id9">ID: {{ product.product_id }}</p>
             </div>
 
-            <p class='product-vender-name' onclick="vendorChat()" data-userid="{{ product.vendor_id }}" data-vendorname="{{ product.vendor_name }}">By {{ product.vendor }}</p>
-      
+            <p class='product-vendor-name' onclick="vendorChat(this)" data-userid="{{ product.vendor_id }}" data-vendorname="{{ product.vendor }}">By {{ product.vendor }}</p>
+
             <div class="product-btn-grid">
                 <p>${{ product.price }}.00</p>
                 <a onclick="popUp()">Add To Cart</a>
@@ -156,13 +211,15 @@
 
     </div>
 
-    <div class="chat_messages" id="chat_messages_pop_up"></div>
-
     <div class="chat_input_bar chat-input-popup">
         <input type="text" placeholder="Type a message...">
         <button type="button">Send</button>
     </div>
 </div>
+
+<script>
+    window.currentUserId = {{ session.get('user_id') or 'null'}}
+</script>
 
 <script src="{{ url_for('static', filename='pop_up_chat.js')}}"></script>
 {% endblock %}

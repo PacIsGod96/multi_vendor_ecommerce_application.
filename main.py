@@ -126,6 +126,7 @@ def products_page():
                 "name": row["name"],
                 "price": row["price"],
                 "vendor": row["vendor_name"],
+                "vendor_id": row["vendor"],
                 "images": [],
                 "sizes": [],
                 "colors": []
@@ -157,10 +158,41 @@ def products_page():
         products_json=json.dumps(products)
     )
 
+@app.route('/get_inbox', methods=['GET'])
+def get_inbox():
+    user_id = session.get('user_id')
+
+    print("INBOX USER ID:", user_id)
+
+    if not user_id:
+        return jsonify([])
+
+    sql = text("""
+        SELECT
+            a.account_id,
+            a.username,
+            MAX(c.chat_id) as last_message_id
+        FROM chat c
+        JOIN accounts a
+            ON a.account_id =
+                CASE
+                    WHEN c.sender_id = :uid THEN c.receiver_id
+                    ELSE c.sender_id
+                END
+        WHERE c.sender_id = :uid OR c.receiver_id = :uid
+        GROUP BY a.account_id, a.username
+    """)
+
+    result = conn.execute(sql, {"uid": user_id}).mappings().all()
+
+    inbox = [dict(row) for row in result]
+
+    return jsonify(inbox)
+
 @app.route('/get_chat', methods=['GET'])
 def get_chat():
-    user1 = request.args.get('user1')
-    user2 = request.args.get('user2')
+    user1 = int(request.args.get('user1'))
+    user2 = int(request.args.get('user2'))
 
     sql = text("""
         SELECT *
@@ -174,7 +206,29 @@ def get_chat():
         "u2": user2
     }).mappings().all()
 
-    return jsonify(result)
+    return jsonify([dict(r) for r in result])
+
+@app.route('/send_chat', methods=['POST'])
+def send_chat():
+    data = request.get_json()
+    
+    sender_id = int(data['sender_id'])
+    receiver_id = int(data['receiver_id'])
+    text_msg = data['text']
+
+    sql = text("""
+        INSERT INTO chat (sender_id, receiver_id, text)
+        VALUES (:sender_id, :receiver_id, :text)
+    """)
+
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            "sender_id": sender_id,
+            "receiver_id": receiver_id,
+            "text": text_msg
+        })
+
+    return jsonify({"status": "success"})
 
 @app.route('/add_product', methods=['POST'])
 def add_product():
@@ -344,23 +398,6 @@ def update_product():
                 INSERT INTO product_images (product_id, image_path)
                 VALUES (:pid, :path)
             """), {'pid': product_id, 'path': path})
-            
-    sender_id = int(data['sender_id'])
-    receiver_id = int(data['receiver_id'])
-    text_msg = data['text']
-
-    with engine.begin() as conn:
-        conn.execute(sql, {
-            "sender_id": sender_id,
-            "receiver_id": receiver_id,
-            "text": text_msg
-        })
-            
-    with engine.begin() as conn:
-        result = conn.execute(sql, {
-            "u1": user1,
-            "u2": user2
-        }).mappings().all()
 
     conn.commit()
     return redirect(url_for('products_page'))
