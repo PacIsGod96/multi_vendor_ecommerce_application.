@@ -126,6 +126,7 @@ def products_page():
                 "name": row["name"],
                 "price": row["price"],
                 "vendor": row["vendor_name"],
+                "vendor_id": row["vendor"],
                 "images": [],
                 "sizes": [],
                 "colors": []
@@ -168,10 +169,41 @@ def products_page():
         products_json=json.dumps(products)
     )
 
+@app.route('/get_inbox', methods=['GET'])
+def get_inbox():
+    user_id = session.get('user_id')
+
+    print("INBOX USER ID:", user_id)
+
+    if not user_id:
+        return jsonify([])
+
+    sql = text("""
+        SELECT
+            a.account_id,
+            a.username,
+            MAX(c.chat_id) as last_message_id
+        FROM chat c
+        JOIN accounts a
+            ON a.account_id =
+                CASE
+                    WHEN c.sender_id = :uid THEN c.receiver_id
+                    ELSE c.sender_id
+                END
+        WHERE c.sender_id = :uid OR c.receiver_id = :uid
+        GROUP BY a.account_id, a.username
+    """)
+
+    result = conn.execute(sql, {"uid": user_id}).mappings().all()
+
+    inbox = [dict(row) for row in result]
+
+    return jsonify(inbox)
+
 @app.route('/get_chat', methods=['GET'])
 def get_chat():
-    user1 = request.args.get('user1')
-    user2 = request.args.get('user2')
+    user1 = int(request.args.get('user1'))
+    user2 = int(request.args.get('user2'))
 
     sql = text("""
         SELECT *
@@ -185,7 +217,29 @@ def get_chat():
         "u2": user2
     }).mappings().all()
 
-    return jsonify(result)
+    return jsonify([dict(r) for r in result])
+
+@app.route('/send_chat', methods=['POST'])
+def send_chat():
+    data = request.get_json()
+    
+    sender_id = int(data['sender_id'])
+    receiver_id = int(data['receiver_id'])
+    text_msg = data['text']
+
+    sql = text("""
+        INSERT INTO chat (sender_id, receiver_id, text)
+        VALUES (:sender_id, :receiver_id, :text)
+    """)
+
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            "sender_id": sender_id,
+            "receiver_id": receiver_id,
+            "text": text_msg
+        })
+
+    return jsonify({"status": "success"})
 
 @app.route('/add_product', methods=['POST'])
 def add_product():
@@ -344,23 +398,6 @@ def update_product():
                 INSERT INTO product_images (product_id, image_path)
                 VALUES (:pid, :path)
             """), {'pid': product_id, 'path': path})
-            
-    sender_id = int(data['sender_id'])
-    receiver_id = int(data['receiver_id'])
-    text_msg = data['text']
-
-    with engine.begin() as conn:
-        conn.execute(sql, {
-            "sender_id": sender_id,
-            "receiver_id": receiver_id,
-            "text": text_msg
-        })
-            
-    with engine.begin() as conn:
-        result = conn.execute(sql, {
-            "u1": user1,
-            "u2": user2
-        }).mappings().all()
 
     conn.commit()
     return redirect(url_for('products_page'))
@@ -485,9 +522,23 @@ def vendor_chat_page():
 
     return render_template('vendorChat.html', vendors=vendors)
 
-@app.route('/admin_confirm_order', methods = ['GET', 'POST'])
+@app.route('/admin_confirm_order', methods=['GET', 'POST'])
 def admin_confirm_order_page():
-    return render_template('adminConfirmOrder.html')
+    if request.method == 'POST':
+        order_id = request.form.get('order_id')
+        sql = text("UPDATE orders SET status = 'confirmed' WHERE order_id = :oid")
+        conn.execute(sql, {"oid": order_id})
+        conn.commit()
+        return "Success", 200
+    orders_query = text("""
+        SELECT order_id, account_id, date, total_price 
+        FROM orders 
+        WHERE status = 'pending'
+    """)
+    orders = conn.execute(orders_query).mappings().fetchall()
+
+    return render_template('adminConfirmOrder.html', orders=orders)
+
 
 @app.route('/feedback', methods=['GET', 'POST'])
 def feedback_page():
@@ -535,4 +586,27 @@ def vendor_chat():
     return render_template('vendorChat.html')
 
 if __name__ == '__main__':
+    app.run(debug=True)
+
+@app.route('/create_order', methods=['POST'])
+def create_order():
+    account_id = request.form.get('account_id')
+    total_price = request.form.get('total_price')
+
+    sql = text("""
+        INSERT INTO orders (account_id, date, status, total_price)
+        VALUES (:account_id, CURDATE(), 'pending', :total_price)
+    """)
+
+    conn.execute(sql, {
+        "account_id": account_id,
+        "total_price": total_price
+    })
+    conn.commit()
+
+    return jsonify({"status": "order_created"}), 200
+
+
+# ⬇️ THIS MUST ALWAYS BE LAST ⬇️
+if __name__ == "__main__":
     app.run(debug=True)

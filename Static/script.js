@@ -402,3 +402,9 @@ function toggleFormPanels() {
         document.getElementById('panel-order-info').style.display = 'block';
     }
 }
+
+fetch('/create_order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `account_id=12&total_price=49.99`
+})

@@ -29,7 +29,7 @@ function renderMessages(messages) {
 }
 
 function vendorChat(el) {
-    chatPartnerId = el.dataset.userid;
+    chatPartnerId = el.getAttribute("data-userid");
 
     console.log("chat opened with:", chatPartnerId)
 
@@ -67,20 +67,32 @@ async function loadMessages() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const chatMessages = document.querySelector(".chat_messages");
-    const input = document.querySelector(".chat_input_bar input");
-    const sendBtn = document.querySelector(".chat_input_bar button");
+    chatMessages = document.querySelector(".chat_messages");
+    input = document.querySelector(".chat_input_bar input");
+    sendBtn = document.querySelector(".chat_input_bar button");
 
     if (!chatMessages || !input || !sendBtn) return;
 
     currentUserId = window.currentUserId;
 
+    if (!currentUserId || currentUserId ==="null") {
+        console.log("USER NOT LOGGED IN")
+    }
+
     sendBtn.addEventListener("click", async (e) => {
+        console.log("RAW CLICK FIRED");
+
+        console.log("input:", input);
+        console.log("chatMessages:", chatMessages);
+        console.log("chatPartnerId:", chatPartnerId);
+        console.log("currentUserId:", currentUserId);
+        console.log("CHAT INIT RUNNING")
+        console.log("SEND BUTTON", sendBtn)
         e.preventDefault();
 
         const text = input.value.trim();
 
-        if (!text || !chatPartnerId) return;
+        if (!text || !chatPartnerId || !currentUserId) return;
 
         const div = document.createElement("div");
         div.classList.add("message", "vendor");
@@ -91,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         input.value = "";
 
-        await fetch("/send_chat", {
+        const res = await fetch("/send_chat", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
@@ -101,6 +113,8 @@ document.addEventListener("DOMContentLoaded", () => {
             })
         });
 
-        loadMessages();
+        const result = await res.json()
+        console.log("send result:", result)
+
     });
-});
+})
