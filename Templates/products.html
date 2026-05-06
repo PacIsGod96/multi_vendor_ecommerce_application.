@@ -5,10 +5,10 @@
 {% block content %}
 
 <h2 class="center-txt">Our Products</h2>
-<div class="pop-up" id="pop-up">
+<div class="pop-up" id="pop-up" style="display:none;">
     
     <div class="pop-up-carosel" id="popup-images">
-        <!-- images injected here -->
+        <!-- images injected -->
     </div>
 
     <div class="pop-up-grid">
@@ -19,20 +19,22 @@
         </div>
 
         <div>
-            <label for="popup-color">Select Color:</label>
-            <select name="color" id="popup-color">
-                <!-- injected -->
-            </select>
+            <label>Select Color:</label>
+            <select id="popup-color"></select>
         </div>
 
         <div>
-            <label for="popup-size">Select Size:</label>
-            <select name="size" id="popup-size">
-                <!-- injected -->
-            </select>
+            <label>Select Size:</label>
+            <select id="popup-size"></select>
+        </div>
+
+        <div>
+            <label>Quantity:</label>
+            <input type="number" id="popup-qty" value="1" min="1">
         </div>
     </div>
     <button class="confirm" onclick="confirmAdd()">Confirm & Add</button>
+    <button onclick="closePopup()">Close</button>
 </div>
 <div class="addProduct" id="addProduct" style="display: none;">
     <h1 class="add-product-title">Add Product</h1>
@@ -180,7 +182,7 @@
 
             <div class="product-btn-grid">
                 <p>${{ product.price }}.00</p>
-                <a onclick="popUp()">Add To Cart</a>
+                <a onclick='popUp({{ product|tojson }})'>Add To Cart</a>
             </div>
 
             {% if session.get('role') in ['vendor', 'admin'] %}
