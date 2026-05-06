@@ -300,12 +300,10 @@ def update_product():
     if 'user_id' not in session:
         return redirect(url_for('login_register'))
 
-    # Retrieve form data
     product_id_raw = request.form.get('product_id')
     user_role = session.get('role')
     user_id = session.get('user_id')
 
-    # DEBUG PRINT: Check what is actually coming from the browser
     print(f"DEBUG: Received product_id_raw = '{product_id_raw}' (type: {type(product_id_raw)})")
     print(f"DEBUG: Logged in user_id = {user_id}, role = {user_role}")
     
@@ -313,23 +311,19 @@ def update_product():
         return "Error: product_id is missing or empty in the form submission!", 400
 
     try:
-        # Cast to integer to match MySQL INT column type
         product_id = int(product_id_raw)
     except ValueError:
         return f"Error: product_id '{product_id_raw}' is not a valid number!", 400
 
-    # Security: Ensure product exists and user has permission to edit it
     owner_check = conn.execute(text("""
         SELECT vendor FROM product WHERE product_id = :pid
     """), {'pid': product_id}).mappings().fetchone()
 
-    # DEBUG PRINT: See what the database returned
     print(f"DEBUG: Database owner_check result = {owner_check}")
 
     if not owner_check:
         return f"Product not found (Searched for product_id: {product_id})", 404
 
-    # Ensure authorization
     if user_role != 'admin' and owner_check['vendor'] != user_id:
         return "Unauthorized", 403
 
@@ -339,7 +333,6 @@ def update_product():
     colors = request.form.getlist('colors')
     images = request.form.getlist('images')
 
-    # 1. Update Name
     if name and name.strip():
         conn.execute(text("""
             UPDATE product
@@ -347,7 +340,6 @@ def update_product():
             WHERE product_id = :pid
         """), {'name': name, 'pid': product_id})
 
-    # 2. Update Price
     if price and price.strip():
         conn.execute(text("""
             UPDATE product
@@ -355,7 +347,6 @@ def update_product():
             WHERE product_id = :pid
         """), {'price': price, 'pid': product_id})
 
-    # 3. Update Sizes
     if sizes:
         conn.execute(text("""
             DELETE FROM product_sizes
@@ -369,7 +360,6 @@ def update_product():
                     VALUES (:pid, :size)
                 """), {'pid': product_id, 'size': size})
 
-    # 4. Update Colors
     active_colors = [c.strip() for c in colors if c.strip()]
     if active_colors:
         conn.execute(text("""
@@ -383,7 +373,6 @@ def update_product():
                 VALUES (:pid, :color)
             """), {'pid': product_id, 'color': color})
 
-    # 5. Update Images
     active_images = [img.strip() for img in images if img.strip()]
     if active_images:
         conn.execute(text("""
@@ -414,11 +403,9 @@ def delete_product():
     if not product_id:
         return "Missing product_id", 400
 
-    # Optional safety: ensure only admin OR owner vendor can delete
     if role not in ['admin', 'vendor']:
         return "Unauthorized", 403
 
-    # If vendor, ensure they own the product
     if role == 'vendor':
         owner = conn.execute(text("""
             SELECT vendor FROM product WHERE product_id = :pid
@@ -427,7 +414,6 @@ def delete_product():
         if not owner or owner['vendor'] != session.get('user_id'):
             return "Not your product", 403
 
-    # Delete in correct order (child tables first)
     conn.execute(text("""
         DELETE FROM product_images WHERE product_id = :pid
     """), {'pid': product_id})
