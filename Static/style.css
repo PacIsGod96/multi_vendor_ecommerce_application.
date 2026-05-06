@@ -104,7 +104,7 @@ main {
     margin: 0 auto;
 }
 
-.product-vender-name {
+.product-vendor-name {
     display: block;
     text-decoration: underline;
     cursor: pointer;
@@ -114,7 +114,7 @@ main {
     text-indent: 26px
 }
 
-.products div .product-vender-name, .product-vender-name {
+.products div .product-vendor-name, .product-vendor-name {
     font-size: .75em;
     margin-bottom: 8px
 }
