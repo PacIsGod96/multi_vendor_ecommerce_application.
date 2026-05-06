@@ -10,7 +10,6 @@ app.secret_key = app.secret_key = "JohnWalmart"
 
 conn_str = "mysql://root:cset155@localhost/multi_vendor_ecommerce"
 engine = create_engine(conn_str, echo=True)
-conn = engine.connect()
 
 @app.route('/template')
 def view_template():
@@ -35,17 +34,15 @@ def register_post():
         VALUES
         (:FirstName, :LastName, :Username, :Password, :EmailAddress, :Role)
     """)
-
-    conn.execute(sql, {
-        'FirstName': first_name,
-        'LastName': last_name,
-        'Username': username,
-        'Password': generate_password_hash(password),
-        'EmailAddress': email,
-        'Role': role
-    })
-
-    conn.commit()
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            'FirstName': first_name,
+            'LastName': last_name,
+            'Username': username,
+            'Password': generate_password_hash(password),
+            'EmailAddress': email,
+            'Role': role
+        })
 
     return render_template('index.html')
 
@@ -59,9 +56,10 @@ def login():
         FROM accounts
         WHERE username = :Username
     """)
-    result = conn.execute(sql, {'Username': username}).mappings().fetchone()
-    print("Entered username: ", username)
-    print("DB result: ", result)
+    with engine.connect() as conn:
+        result = conn.execute(sql, {'Username': username}).mappings().fetchone()
+    # print("Entered username: ", username)
+    # print("DB result: ", result)
 
     if result:
         stored_password = result['password']
@@ -88,38 +86,41 @@ def logout():
 @app.route('/products', methods=['GET'])
 def products_page():
 
-    rows = conn.execute(text("""
-        SELECT 
-            p.product_id,
-            p.name,
-            p.vendor,
-            p.price,
-            a.username AS vendor_name,
-            pi.image_path
-        FROM product p
-        LEFT JOIN product_images pi 
-            ON p.product_id = pi.product_id
-        LEFT JOIN accounts a
-            ON p.vendor = a.account_id
-    """)).mappings().all()
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT 
+                p.product_id,
+                p.name,
+                p.vendor,
+                p.price,
+                a.username AS vendor_name,
+                pi.image_path
+            FROM product p
+            LEFT JOIN product_images pi 
+                ON p.product_id = pi.product_id
+            LEFT JOIN accounts a
+                ON p.vendor = a.account_id
+        """)).mappings().all()
 
-    sizes_rows = conn.execute(text("""
-        SELECT product_id, size FROM product_sizes
-    """)).mappings().all()
+    with engine.connect() as conn:
+        sizes_rows = conn.execute(text("""
+            SELECT product_id, size FROM product_sizes
+        """)).mappings().all()
 
-    colors_rows = conn.execute(text("""
-        SELECT product_id, color FROM product_colors
-    """)).mappings().all()
+    with engine.connect() as conn:
+        colors_rows = conn.execute(text("""
+            SELECT product_id, color FROM product_colors
+        """)).mappings().all()
 
-    vendors = conn.execute(
-        text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
-    ).mappings().all()
+    with engine.connect() as conn:
+        vendors = conn.execute(
+            text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
+        ).mappings().all()
 
     products_dict = {}
 
     for row in rows:
         pid = row["product_id"]
-
         if pid not in products_dict:
             products_dict[pid] = {
                 "product_id": pid,
@@ -162,7 +163,7 @@ def products_page():
 def get_inbox():
     user_id = session.get('user_id')
 
-    print("INBOX USER ID:", user_id)
+    # print("INBOX USER ID:", user_id)
 
     if not user_id:
         return jsonify([])
@@ -182,8 +183,8 @@ def get_inbox():
         WHERE c.sender_id = :uid OR c.receiver_id = :uid
         GROUP BY a.account_id, a.username
     """)
-
-    result = conn.execute(sql, {"uid": user_id}).mappings().all()
+    with engine.connect() as conn:
+        result = conn.execute(sql, {"uid": user_id}).mappings().all()
 
     inbox = [dict(row) for row in result]
 
@@ -199,14 +200,15 @@ def get_chat():
         FROM chat
         WHERE (sender_id = :u1 AND receiver_id = :u2)
             OR (sender_id = :u2 AND receiver_id = :u1)
+        ORDER BY chat_id ASC
     """)
+    with engine.connect() as conn:
+        result = conn.execute(sql, {
+            "u1": user1,
+            "u2": user2
+        }).mappings().all()
 
-    result = conn.execute(sql, {
-        "u1": user1,
-        "u2": user2
-    }).mappings().all()
-
-    return jsonify([dict(r) for r in result])
+    return jsonify([dict(row) for row in result])
 
 @app.route('/send_chat', methods=['POST'])
 def send_chat():
@@ -244,55 +246,54 @@ def add_product():
 
     vendor = request.form.get('vendor')
 
-    
-    result = conn.execute(text("""
-        INSERT INTO product (name, vendor, price)
-        VALUES (:name, :vendor, :price)
-    """), {
-        'name': name,
-        'vendor': vendor,
-        'price': price
-    })
-
-    product_id = result.lastrowid
-
-    
-    for size in sizes:
-        conn.execute(text("""
-            INSERT INTO product_sizes (product_id, size)
-            VALUES (:pid, :size)
+    with engine.begin() as conn:
+        result = conn.execute(text("""
+            INSERT INTO product (name, vendor, price)
+            VALUES (:name, :vendor, :price)
         """), {
-            'pid': product_id,
-            'size': size
+            'name': name,
+            'vendor': vendor,
+            'price': price
         })
 
+        product_id = result.lastrowid
 
-    for color in colors:
-        if color.strip():
+        
+        for size in sizes:
             conn.execute(text("""
-                INSERT INTO product_colors (product_id, color)
-                VALUES (:pid, :color)
+                INSERT INTO product_sizes (product_id, size)
+                VALUES (:pid, :size)
             """), {
                 'pid': product_id,
-                'color': color
+                'size': size
             })
 
-    import os
 
-    for img in images:
-        if img.strip():
-            filename = os.path.basename(img)  
-            path = f"Images/{filename}"       
+        for color in colors:
+            if color.strip():
+                conn.execute(text("""
+                    INSERT INTO product_colors (product_id, color)
+                    VALUES (:pid, :color)
+                """), {
+                    'pid': product_id,
+                    'color': color
+                })
 
-            conn.execute(text("""
-                INSERT INTO product_images (product_id, image_path)
-                VALUES (:pid, :path)
-            """), {
-                'pid': product_id,
-                'path': path
-            })
+        import os
 
-    conn.commit()
+        for img in images:
+            if img.strip():
+                filename = os.path.basename(img)  
+                path = f"Images/{filename}"       
+
+                conn.execute(text("""
+                    INSERT INTO product_images (product_id, image_path)
+                    VALUES (:pid, :path)
+                """), {
+                    'pid': product_id,
+                    'path': path
+                })
+
     return redirect(url_for('products_page'))
 
 @app.route('/update_product', methods=['POST'])
@@ -304,8 +305,8 @@ def update_product():
     user_role = session.get('role')
     user_id = session.get('user_id')
 
-    print(f"DEBUG: Received product_id_raw = '{product_id_raw}' (type: {type(product_id_raw)})")
-    print(f"DEBUG: Logged in user_id = {user_id}, role = {user_role}")
+    # print(f"DEBUG: Received product_id_raw = '{product_id_raw}' (type: {type(product_id_raw)})")
+    # print(f"DEBUG: Logged in user_id = {user_id}, role = {user_role}")
     
     if not product_id_raw or not product_id_raw.strip():
         return "Error: product_id is missing or empty in the form submission!", 400
@@ -314,81 +315,80 @@ def update_product():
         product_id = int(product_id_raw)
     except ValueError:
         return f"Error: product_id '{product_id_raw}' is not a valid number!", 400
+    with engine.begin() as conn:
+        owner_check = conn.execute(text("""
+            SELECT vendor FROM product WHERE product_id = :pid
+        """), {'pid': product_id}).mappings().fetchone()
 
-    owner_check = conn.execute(text("""
-        SELECT vendor FROM product WHERE product_id = :pid
-    """), {'pid': product_id}).mappings().fetchone()
+        # print(f"DEBUG: Database owner_check result = {owner_check}")
 
-    print(f"DEBUG: Database owner_check result = {owner_check}")
+        if not owner_check:
+            return f"Product not found (Searched for product_id: {product_id})", 404
 
-    if not owner_check:
-        return f"Product not found (Searched for product_id: {product_id})", 404
+        if user_role != 'admin' and owner_check['vendor'] != user_id:
+            return "Unauthorized", 403
 
-    if user_role != 'admin' and owner_check['vendor'] != user_id:
-        return "Unauthorized", 403
+        name = request.form.get('name')
+        price = request.form.get('price')
+        sizes = request.form.getlist('sizes')
+        colors = request.form.getlist('colors')
+        images = request.form.getlist('images')
 
-    name = request.form.get('name')
-    price = request.form.get('price')
-    sizes = request.form.getlist('sizes')
-    colors = request.form.getlist('colors')
-    images = request.form.getlist('images')
+        if name and name.strip():
+            conn.execute(text("""
+                UPDATE product
+                SET name = :name
+                WHERE product_id = :pid
+            """), {'name': name, 'pid': product_id})
 
-    if name and name.strip():
-        conn.execute(text("""
-            UPDATE product
-            SET name = :name
-            WHERE product_id = :pid
-        """), {'name': name, 'pid': product_id})
+        if price and price.strip():
+            conn.execute(text("""
+                UPDATE product
+                SET price = :price
+                WHERE product_id = :pid
+            """), {'price': price, 'pid': product_id})
 
-    if price and price.strip():
-        conn.execute(text("""
-            UPDATE product
-            SET price = :price
-            WHERE product_id = :pid
-        """), {'price': price, 'pid': product_id})
+        if sizes:
+            conn.execute(text("""
+                DELETE FROM product_sizes
+                WHERE product_id = :pid
+            """), {'pid': product_id})
+            
+            for size in sizes:
+                if size.strip():
+                    conn.execute(text("""
+                        INSERT INTO product_sizes (product_id, size)
+                        VALUES (:pid, :size)
+                    """), {'pid': product_id, 'size': size})
 
-    if sizes:
-        conn.execute(text("""
-            DELETE FROM product_sizes
-            WHERE product_id = :pid
-        """), {'pid': product_id})
-        
-        for size in sizes:
-            if size.strip():
+        active_colors = [c.strip() for c in colors if c.strip()]
+        if active_colors:
+            conn.execute(text("""
+                DELETE FROM product_colors
+                WHERE product_id = :pid
+            """), {'pid': product_id})
+
+            for color in active_colors:
                 conn.execute(text("""
-                    INSERT INTO product_sizes (product_id, size)
-                    VALUES (:pid, :size)
-                """), {'pid': product_id, 'size': size})
+                    INSERT INTO product_colors (product_id, color)
+                    VALUES (:pid, :color)
+                """), {'pid': product_id, 'color': color})
 
-    active_colors = [c.strip() for c in colors if c.strip()]
-    if active_colors:
-        conn.execute(text("""
-            DELETE FROM product_colors
-            WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        for color in active_colors:
+        active_images = [img.strip() for img in images if img.strip()]
+        if active_images:
             conn.execute(text("""
-                INSERT INTO product_colors (product_id, color)
-                VALUES (:pid, :color)
-            """), {'pid': product_id, 'color': color})
+                DELETE FROM product_images
+                WHERE product_id = :pid
+            """), {'pid': product_id})
 
-    active_images = [img.strip() for img in images if img.strip()]
-    if active_images:
-        conn.execute(text("""
-            DELETE FROM product_images
-            WHERE product_id = :pid
-        """), {'pid': product_id})
+            for img in active_images:
+                filename = os.path.basename(img)
+                path = f"Images/{filename}"
+                conn.execute(text("""
+                    INSERT INTO product_images (product_id, image_path)
+                    VALUES (:pid, :path)
+                """), {'pid': product_id, 'path': path})
 
-        for img in active_images:
-            filename = os.path.basename(img)
-            path = f"Images/{filename}"
-            conn.execute(text("""
-                INSERT INTO product_images (product_id, image_path)
-                VALUES (:pid, :path)
-            """), {'pid': product_id, 'path': path})
-
-    conn.commit()
     return redirect(url_for('products_page'))
 
 @app.route('/delete_product', methods=['POST'])
@@ -405,32 +405,31 @@ def delete_product():
 
     if role not in ['admin', 'vendor']:
         return "Unauthorized", 403
+    with engine.connect() as conn:
+        if role == 'vendor':
+            owner = conn.execute(text("""
+                SELECT vendor FROM product WHERE product_id = :pid
+            """), {'pid': product_id}).mappings().fetchone()
 
-    if role == 'vendor':
-        owner = conn.execute(text("""
-            SELECT vendor FROM product WHERE product_id = :pid
-        """), {'pid': product_id}).mappings().fetchone()
+            if not owner or owner['vendor'] != session.get('user_id'):
+                return "Not your product", 403
 
-        if not owner or owner['vendor'] != session.get('user_id'):
-            return "Not your product", 403
+    with engine.begin() as conn:
+        conn.execute(text("""
+            DELETE FROM product_images WHERE product_id = :pid
+        """), {'pid': product_id})
 
-    conn.execute(text("""
-        DELETE FROM product_images WHERE product_id = :pid
-    """), {'pid': product_id})
+        conn.execute(text("""
+            DELETE FROM product_sizes WHERE product_id = :pid
+        """), {'pid': product_id})
 
-    conn.execute(text("""
-        DELETE FROM product_sizes WHERE product_id = :pid
-    """), {'pid': product_id})
+        conn.execute(text("""
+            DELETE FROM product_colors WHERE product_id = :pid
+        """), {'pid': product_id})
 
-    conn.execute(text("""
-        DELETE FROM product_colors WHERE product_id = :pid
-    """), {'pid': product_id})
-
-    conn.execute(text("""
-        DELETE FROM product WHERE product_id = :pid
-    """), {'pid': product_id})
-
-    conn.commit()
+        conn.execute(text("""
+            DELETE FROM product WHERE product_id = :pid
+        """), {'pid': product_id})
 
     return redirect(url_for('products_page'))
 
@@ -452,7 +451,9 @@ def account_page():
             FROM accounts
             WHERE username = :Username
         """)
-        user = conn.execute(sql, {'Username': username}).mappings().fetchone()
+
+        with engine.connect() as conn:
+            user = conn.execute(sql, {'Username': username}).mappings().fetchone()
         
         new_username = request.form.get('account_username')
         new_password = request.form.get('account_password')
@@ -474,16 +475,15 @@ def account_page():
                 last_name = :Last
             WHERE username = :CurrentUsername
         """)
-
-        conn.execute(sql, {
-            'Username': new_username,
-            'Password': hashed_password,
-            'Email': new_email,
-            'First': new_first,
-            'Last': new_last,
-            'CurrentUsername': username
-        })
-        conn.commit()
+        with engine.begin() as conn:
+            conn.execute(sql, {
+                'Username': new_username,
+                'Password': hashed_password,
+                'Email': new_email,
+                'First': new_first,
+                'Last': new_last,
+                'CurrentUsername': username
+            })
 
         session['username'] = new_username
 
@@ -495,7 +495,8 @@ def account_page():
         WHERE username = :Username
     """)
 
-    user = conn.execute(sql, {'Username': username}).mappings().fetchone()
+    with engine.connect() as conn:
+        user = conn.execute(sql, {'Username': username}).mappings().fetchone()
 
     return render_template('account.html', user=user)
 
@@ -505,26 +506,34 @@ def admin_complaint_page():
 
 @app.route('/vendor_chat', methods=['GET', 'POST'])
 def vendor_chat_page():
-    vendors = conn.execute(
-        text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
-    ).fetchall()
+    with engine.connect() as conn:
+        vendors = conn.execute(
+            text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
+        ).fetchall()
 
     return render_template('vendorChat.html', vendors=vendors)
+
+@app.route('/vendor_chat')
+def vendor_chat():
+    return render_template('vendorChat.html')
 
 @app.route('/admin_confirm_order', methods=['GET', 'POST'])
 def admin_confirm_order_page():
     if request.method == 'POST':
         order_id = request.form.get('order_id')
-        sql = text("UPDATE orders SET status = 'confirmed' WHERE order_id = :oid")
-        conn.execute(sql, {"oid": order_id})
-        conn.commit()
+
+        with engine.connect() as conn:
+            sql = text("UPDATE orders SET status = 'confirmed' WHERE order_id = :oid")
+            conn.execute(sql, {"oid": order_id})
         return "Success", 200
-    orders_query = text("""
-        SELECT order_id, account_id, date, total_price 
-        FROM orders 
-        WHERE status = 'pending'
-    """)
-    orders = conn.execute(orders_query).mappings().fetchall()
+    
+    with engine.connect() as conn:
+        orders_query = text("""
+            SELECT order_id, account_id, date, total_price 
+            FROM orders 
+            WHERE status = 'pending'
+        """)
+        orders = conn.execute(orders_query).mappings().fetchall()
 
     return render_template('adminConfirmOrder.html', orders=orders)
 
@@ -534,48 +543,41 @@ def feedback_page():
     if request.method == 'POST':
         category = request.form.get('category')
         username = session.get('username')
+        
+        with engine.begin() as conn:
+            user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+            account_id = user_res['account_id'] if user_res else None
 
-        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
-        account_id = user_res['account_id'] if user_res else None
+            if category == 'Review':
+                sql = text("""
+                    INSERT INTO review (name, description, stars, date, account_id, product_id)
+                    VALUES (:name, :desc, :stars, CURDATE(), :uid, :pid)
+                """)
+                conn.execute(sql, {
+                    'name': f"Review by {username}",
+                    'desc': request.form.get('review_text'),
+                    'stars': request.form.get('rating'),
+                    'uid': account_id,
+                    'pid': request.form.get('product_id')
+                })
 
-        if category == 'Review':
-            sql = text("""
-                INSERT INTO review (name, description, stars, date, account_id, product_id)
-                VALUES (:name, :desc, :stars, CURDATE(), :uid, :pid)
-            """)
-            conn.execute(sql, {
-                'name': f"Review by {username}",
-                'desc': request.form.get('review_text'),
-                'stars': request.form.get('rating'),
-                'uid': account_id,
-                'pid': request.form.get('product_id')
-            })
+            elif category == 'Refund':
+                sql = text("""
+                    INSERT INTO returns (name, description, date, status, account_id)
+                    VALUES (:name, :desc, CURDATE(), 'pending', :uid)
+                """)
+                conn.execute(sql, {
+                    'name': f"Return Request - Order {request.form.get('order_id')}",
+                    'desc': request.form.get('review_text'),
+                    'uid': account_id
+                })
 
-        elif category == 'Refund':
-            sql = text("""
-                INSERT INTO returns (name, description, date, status, account_id)
-                VALUES (:name, :desc, CURDATE(), 'pending', :uid)
-            """)
-            conn.execute(sql, {
-                'name': f"Return Request - Order {request.form.get('order_id')}",
-                'desc': request.form.get('review_text'),
-                'uid': account_id
-            })
+            # elif category == 'Complaint':
+            #     print(f"Complaint received from {username}: {request.form.get('review_text')}")
 
-        elif category == 'Complaint':
-            print(f"Complaint received from {username}: {request.form.get('review_text')}")
-
-        conn.commit()
         return redirect(url_for('feedback_page'))
 
     return render_template('feedback.html')
-
-@app.route('/vendor_chat')
-def vendor_chat():
-    return render_template('vendorChat.html')
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 @app.route('/create_order', methods=['POST'])
 def create_order():
@@ -586,16 +588,13 @@ def create_order():
         INSERT INTO orders (account_id, date, status, total_price)
         VALUES (:account_id, CURDATE(), 'pending', :total_price)
     """)
-
-    conn.execute(sql, {
-        "account_id": account_id,
-        "total_price": total_price
-    })
-    conn.commit()
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            "account_id": account_id,
+            "total_price": total_price
+        })
 
     return jsonify({"status": "order_created"}), 200
 
-
-# ⬇️ THIS MUST ALWAYS BE LAST ⬇️
 if __name__ == "__main__":
     app.run(debug=True)
