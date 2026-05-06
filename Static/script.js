@@ -41,14 +41,75 @@ function toggleEdit(id) {
     }
 }
 
-function popUp() {
-    const pop_up = document.getElementById('pop-up');
-    pop_up.style.display = 'block';
+
+function popUp(product) {
+
+    const popup = document.getElementById("pop-up");
+    popup.style.display = "block";
+
+    // Basic info
+    document.getElementById("popup-name").innerText = product.name;
+    document.getElementById("popup-vendor").innerText = "By " + product.vendor;
+    document.getElementById("popup-price").innerText = "$" + (product.price || "16.99");
+
+    // 🔥 IMAGES CAROUSEL
+    const imgContainer = document.getElementById("popup-images");
+    imgContainer.innerHTML = "";
+
+    if (product.images && product.images.length > 0) {
+        product.images.forEach(img => {
+            const image = document.createElement("img");
+            image.src = "/static/" + img;
+            imgContainer.appendChild(image);
+        });
+    }
+
+    // 🔥 COLORS
+    const colorSelect = document.getElementById("popup-color");
+    colorSelect.innerHTML = "";
+
+    if (product.colors) {
+        product.colors.forEach(color => {
+            let option = document.createElement("option");
+            option.value = color;
+            option.text = color;
+            colorSelect.appendChild(option);
+        });
+    }
+
+    // 🔥 SIZES
+    const sizeSelect = document.getElementById("popup-size");
+    sizeSelect.innerHTML = "";
+
+    if (product.sizes) {
+        product.sizes.forEach(size => {
+            let option = document.createElement("option");
+            option.value = size;
+            option.text = size;
+            sizeSelect.appendChild(option);
+        });
+    }
 }
 
+function closePopup() {
+    document.getElementById("pop-up").style.display = "none";
+}
+
+
 function confirmAdd() {
-    const pop_up = document.getElementById('pop-up');
-    pop_up.style.display = 'none';
+    const productName = document.getElementById("popup-name").innerText;
+    const color = document.getElementById("popup-color").value;
+    const size = document.getElementById("popup-size").value;
+    const qty = document.getElementById("popup-qty").value;
+
+    console.log("ADD TO CART:", {
+        productName,
+        color,
+        size,
+        qty
+    });
+
+    closePopup();
 }
 
 function addProduct() {
