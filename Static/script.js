@@ -124,11 +124,6 @@ function exitDelete() {
     deleteWindow.style.display = "none"    
 }
 
-function vendorChat() {
-    const chatWindow = document.getElementById('vendorChat');
-    chatWindow.style.display = 'block'
-}
- 
 function showConfirm() {
     document.getElementById("cartPage").classList.add("hidden");
     document.getElementById("confirmOrderPage").classList.remove("hidden");

@@ -254,7 +254,7 @@ def update_product():
     # DEBUG PRINT: Check what is actually coming from the browser
     print(f"DEBUG: Received product_id_raw = '{product_id_raw}' (type: {type(product_id_raw)})")
     print(f"DEBUG: Logged in user_id = {user_id}, role = {user_role}")
-
+    
     if not product_id_raw or not product_id_raw.strip():
         return "Error: product_id is missing or empty in the form submission!", 400
 
@@ -344,6 +344,23 @@ def update_product():
                 INSERT INTO product_images (product_id, image_path)
                 VALUES (:pid, :path)
             """), {'pid': product_id, 'path': path})
+            
+    sender_id = int(data['sender_id'])
+    receiver_id = int(data['receiver_id'])
+    text_msg = data['text']
+
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            "sender_id": sender_id,
+            "receiver_id": receiver_id,
+            "text": text_msg
+        })
+            
+    with engine.begin() as conn:
+        result = conn.execute(sql, {
+            "u1": user1,
+            "u2": user2
+        }).mappings().all()
 
     conn.commit()
     return redirect(url_for('products_page'))
@@ -475,9 +492,50 @@ def vendor_chat_page():
 def admin_confirm_order_page():
     return render_template('adminConfirmOrder.html')
 
-@app.route('/feedback') 
+@app.route('/feedback', methods=['GET', 'POST'])
 def feedback_page():
-    return render_template('feedback.html') 
+    if request.method == 'POST':
+        category = request.form.get('category')
+        username = session.get('username')
+
+        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+        account_id = user_res['account_id'] if user_res else None
+
+        if category == 'Review':
+            sql = text("""
+                INSERT INTO review (name, description, stars, date, account_id, product_id)
+                VALUES (:name, :desc, :stars, CURDATE(), :uid, :pid)
+            """)
+            conn.execute(sql, {
+                'name': f"Review by {username}",
+                'desc': request.form.get('review_text'),
+                'stars': request.form.get('rating'),
+                'uid': account_id,
+                'pid': request.form.get('product_id')
+            })
+
+        elif category == 'Refund':
+            sql = text("""
+                INSERT INTO returns (name, description, date, status, account_id)
+                VALUES (:name, :desc, CURDATE(), 'pending', :uid)
+            """)
+            conn.execute(sql, {
+                'name': f"Return Request - Order {request.form.get('order_id')}",
+                'desc': request.form.get('review_text'),
+                'uid': account_id
+            })
+
+        elif category == 'Complaint':
+            print(f"Complaint received from {username}: {request.form.get('review_text')}")
+
+        conn.commit()
+        return redirect(url_for('feedback_page'))
+
+    return render_template('feedback.html')
+
+@app.route('/vendor_chat')
+def vendor_chat():
+    return render_template('vendorChat.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

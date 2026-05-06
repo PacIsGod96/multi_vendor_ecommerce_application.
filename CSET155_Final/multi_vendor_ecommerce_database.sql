@@ -178,7 +178,6 @@ UPDATE returns SET status = 'pending' WHERE return_id = 1;
 INSERT INTO chat (text, images, account_id) VALUES ('text', 'img', 1);
 DELETE FROM chat WHERE chat_id = 1;
 
-
 -- Rob  5/4: Run 183 - 195 --
 SET SQL_SAFE_UPDATES = 0;
 ALTER TABLE product DROP COLUMN description;
@@ -200,3 +199,24 @@ SELECT * FROM product_colors;
 SELECT * FROM product_images;
 SELECT * FROM product_sizes;
 DELETE FROM product_images WHERE product_id = 2;
+
+SELECT * FROM accounts;
+DROP TABLE vendor_product_sizes;
+DROP TABLE vendor_product_colors;
+ALTER TABLE warranty DROP FOREIGN KEY warranty_ibfk_1;
+ALTER TABLE warranty DROP COLUMN vendor_id;
+ALTER TABLE warranty
+ADD FOREIGN KEY (product_id) REFERENCES product(product_id);
+ALTER TABLE discount_product DROP FOREIGN KEY discount_product_ibfk_2;
+ALTER TABLE discount_product DROP COLUMN vendor_id;
+ALTER TABLE discount_product
+ADD FOREIGN KEY (product_id) REFERENCES product(product_id);
+ALTER TABLE discounts DROP FOREIGN KEY discounts_ibfk_1;
+ALTER TABLE discounts DROP COLUMN vendor_id;
+DROP TABLE vendor_product;
+ALTER TABLE vendor_product
+DROP COLUMN warranty_period;
+
+
+-- --Logan
+

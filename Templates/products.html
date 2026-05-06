@@ -121,7 +121,7 @@
             </div>
 
             <p class='product-vender-name' onclick="vendorChat()" data-userid="{{ product.vendor_id }}" data-vendorname="{{ product.vendor_name }}">By {{ product.vendor }}</p>
-
+      
             <div class="product-btn-grid">
                 <p>${{ product.price }}.00</p>
                 <a onclick="popUp()">Add To Cart</a>
@@ -147,7 +147,13 @@
 <div id="vendorChat">
     <div class="chat-title-grid">
         <h2>Chatting With:</h2>
-        <h2>user</h2>
+        {% if session.get('username') %}
+        <h2 id="chatVendorName">Select a vendor</h2>
+        {% endif %} 
+        <button class="chat-close-btn" onclick="closeChat()">X</button>
+    </div>
+    <div class="chat_messages" id="chat_messages_pop_up">
+
     </div>
 
     <div class="chat_messages" id="chat_messages_pop_up"></div>
