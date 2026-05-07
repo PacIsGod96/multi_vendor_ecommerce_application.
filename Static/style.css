@@ -419,7 +419,8 @@ footer {
 }
 
 .footer-logo {
-    width: 125px;
+    width: 200px;
+    margin-top: 40px;
 }
 
 .footer-grid div ul {
