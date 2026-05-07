@@ -224,127 +224,15 @@ def add_product():
             })
 
 
-        for color in colors:
-            if color.strip():
-                conn.execute(text("""
-                    INSERT INTO product_colors (product_id, color)
-                    VALUES (:pid, :color)
-                """), {
-                    'pid': product_id,
-                    'color': color
-                })
-
-        import os
-
-        for img in images:
-            if img.strip():
-                filename = os.path.basename(img)  
-                path = f"Images/{filename}"       
-
-                conn.execute(text("""
-                    INSERT INTO product_images (product_id, image_path)
-                    VALUES (:pid, :path)
-                """), {
-                    'pid': product_id,
-                    'path': path
-                })
-
+    for color in colors:
+        if color.strip(): 
+            conn.execute(text("""
+                INSERT INTO product_colors (product_id, color)
+                VALUES (:pid, :color)
+            """), {'pid': product_id, 'color': color})
+    conn.commit()
     return redirect(url_for('products_page'))
 
-@app.route('/update_product', methods=['POST'])
-def update_product():
-    if 'user_id' not in session:
-        return redirect(url_for('login_register'))
-
-    product_id_raw = request.form.get('product_id')
-    user_role = session.get('role')
-    user_id = session.get('user_id')
-
-    # print(f"DEBUG: Received product_id_raw = '{product_id_raw}' (type: {type(product_id_raw)})")
-    # print(f"DEBUG: Logged in user_id = {user_id}, role = {user_role}")
-    
-    if not product_id_raw or not product_id_raw.strip():
-        return "Error: product_id is missing or empty in the form submission!", 400
-
-    try:
-        product_id = int(product_id_raw)
-    except ValueError:
-        return f"Error: product_id '{product_id_raw}' is not a valid number!", 400
-    with engine.begin() as conn:
-        owner_check = conn.execute(text("""
-            SELECT vendor FROM product WHERE product_id = :pid
-        """), {'pid': product_id}).mappings().fetchone()
-
-        # print(f"DEBUG: Database owner_check result = {owner_check}")
-
-        if not owner_check:
-            return f"Product not found (Searched for product_id: {product_id})", 404
-
-        if user_role != 'admin' and owner_check['vendor'] != user_id:
-            return "Unauthorized", 403
-
-        name = request.form.get('name')
-        price = request.form.get('price')
-        sizes = request.form.getlist('sizes')
-        colors = request.form.getlist('colors')
-        images = request.form.getlist('images')
-
-        if name and name.strip():
-            conn.execute(text("""
-                UPDATE product
-                SET name = :name
-                WHERE product_id = :pid
-            """), {'name': name, 'pid': product_id})
-
-        if price and price.strip():
-            conn.execute(text("""
-                UPDATE product
-                SET price = :price
-                WHERE product_id = :pid
-            """), {'price': price, 'pid': product_id})
-
-        if sizes:
-            conn.execute(text("""
-                DELETE FROM product_sizes
-                WHERE product_id = :pid
-            """), {'pid': product_id})
-            
-            for size in sizes:
-                if size.strip():
-                    conn.execute(text("""
-                        INSERT INTO product_sizes (product_id, size)
-                        VALUES (:pid, :size)
-                    """), {'pid': product_id, 'size': size})
-
-        active_colors = [c.strip() for c in colors if c.strip()]
-        if active_colors:
-            conn.execute(text("""
-                DELETE FROM product_colors
-                WHERE product_id = :pid
-            """), {'pid': product_id})
-
-            for color in active_colors:
-                conn.execute(text("""
-                    INSERT INTO product_colors (product_id, color)
-                    VALUES (:pid, :color)
-                """), {'pid': product_id, 'color': color})
-
-        active_images = [img.strip() for img in images if img.strip()]
-        if active_images:
-            conn.execute(text("""
-                DELETE FROM product_images
-                WHERE product_id = :pid
-            """), {'pid': product_id})
-
-            for img in active_images:
-                filename = os.path.basename(img)
-                path = f"Images/{filename}"
-                conn.execute(text("""
-                    INSERT INTO product_images (product_id, image_path)
-                    VALUES (:pid, :path)
-                """), {'pid': product_id, 'path': path})
-
-    return redirect(url_for('products_page'))
 
 @app.route('/add_to_cart', methods = ['POST']) 
 def add_to_cart():
@@ -448,24 +336,21 @@ def cart_page():
     query = text("""
         SELECT 
             p.product_id,
-            p.name, 
-            p.description,
-            p.images,
-            vp.price, 
-            a.username AS vendor_name,
-            o.order_id,
-            o.total_price,
-            o.date
-        FROM orders o
-        JOIN accounts a ON o.account_id = a.account_id
-        JOIN vendor_product vp ON a.account_id = vp.vendor_id
-        JOIN product p ON vp.product_id = p.product_id
-        WHERE o.account_id = :uid AND o.status = 'pending'
+            p.name,
+            p.price,
+            c.quantity
+        FROM cart c
+        JOIN product p ON c.product_id = p.product_id
+        WHERE c.account_id = :uid
     """)
-    
+
     cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
 
-    return render_template('cart.html', cart_items=cart_products)
+    total = sum(item['price'] * item['quantity'] for item in cart_products)
+
+    return render_template('cart.html', cart=cart_products, total=total)
+
+
 
 @app.route('/account', methods = ['GET', 'POST'])
 def account_page():
