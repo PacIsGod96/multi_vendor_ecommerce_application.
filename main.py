@@ -441,68 +441,54 @@ def add_to_cart():
 
     return redirect(url_for('products_page'))
 
-@app.route('/cart', methods=['GET', 'POST']) 
-def cart_page():
-    if 'username' not in session:
-        return redirect(url_for('login_register'))
-    
-    username = session['username']
+@app.route('/cart', methods=['GET', 'POST'])
+def cart():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login')) # Must be logged in to use cart
+
+    if request.method == 'POST':
+        product_id = request.form.get('product_id')
+        quantity = request.form.get('quantity', 1)
+        
+        # We check for product_id here to prevent the "Missing" error
+        if not product_id:
+            return "Error: No product selected", 400
+
+        with engine.begin() as conn:
+            # Check if item is already in cart to update quantity, or insert new
+            existing = conn.execute(text("""
+                SELECT cart_item_id FROM cart 
+                WHERE account_id = :aid AND product_id = :pid
+            """), {'aid': user_id, 'pid': product_id}).fetchone()
+
+            if existing:
+                conn.execute(text("""
+                    UPDATE cart SET quantity = quantity + :qty 
+                    WHERE account_id = :aid AND product_id = :pid
+                """), {'qty': quantity, 'aid': user_id, 'pid': product_id})
+            else:
+                conn.execute(text("""
+                    INSERT INTO cart (account_id, product_id, quantity)
+                    VALUES (:aid, :pid, :qty)
+                """), {'aid': user_id, 'pid': product_id, 'qty': quantity})
+
+        return redirect(url_for('cart'))
+
+    # GET Request: Show the user's cart
     with engine.connect() as conn:
-        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
-    account_id = user_res['account_id'] if user_res else None
+        cart_items = conn.execute(text("""
+            SELECT c.cart_item_id, c.quantity, p.name, p.price, pi.image_path
+            FROM cart c
+            JOIN product p ON c.product_id = p.product_id
+            LEFT JOIN (
+                SELECT product_id, MIN(image_path) as image_path 
+                FROM product_images GROUP BY product_id
+            ) pi ON p.product_id = pi.product_id
+            WHERE c.account_id = :aid
+        """), {'aid': user_id}).mappings().all()
 
-    product_id = request.form.get('product_id')
-    role = session.get('role')
-
-    if not product_id:
-        return "Missing product_id", 400
-
-    if role not in ['admin', 'vendor']:
-        return "Unauthorized", 403
-    with engine.connect() as conn:
-        if role == 'vendor':
-            owner = conn.execute(text("""
-                SELECT vendor FROM product WHERE product_id = :pid
-            """), {'pid': product_id}).mappings().fetchone()
-
-            if not owner or owner['vendor'] != session.get('user_id'):
-                return "Not your product", 403
-
-    with engine.begin() as conn:
-        conn.execute(text("""
-            DELETE FROM product_images WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product_sizes WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product_colors WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product WHERE product_id = :pid
-        """), {'pid': product_id})
-
-    return redirect(url_for('products_page'))
-
-    query = text("""
-        SELECT 
-            p.product_id,
-            p.name,
-            p.price,
-            c.quantity
-        FROM cart c
-        JOIN product p ON c.product_id = p.product_id
-        WHERE c.account_id = :uid
-    """)
-
-    cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
-
-    total = sum(item['price'] * item['quantity'] for item in cart_products)
-
-    return render_template('cart.html', cart=cart_products, total=total)
+    return render_template('cart.html', cart=cart_items)
 #-------------------------------------------------------End of backend for cart-----------------------------------------------------------
 
 #------------------------------------------------------Backend for orders------------------------------------------------------------
