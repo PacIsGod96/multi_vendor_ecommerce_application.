@@ -9,7 +9,6 @@ app.secret_key = os.urandom(24)
 
 conn_str = "mysql://root:cset155@localhost/multi_vendor_ecommerce"
 engine = create_engine(conn_str, echo=True)
-conn = engine.connect()
 
 @app.route('/template')
 def view_template():
@@ -34,17 +33,15 @@ def register_post():
         VALUES
         (:FirstName, :LastName, :Username, :Password, :EmailAddress, :Role)
     """)
-
-    conn.execute(sql, {
-        'FirstName': first_name,
-        'LastName': last_name,
-        'Username': username,
-        'Password': generate_password_hash(password),
-        'EmailAddress': email,
-        'Role': role
-    })
-
-    conn.commit()
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            'FirstName': first_name,
+            'LastName': last_name,
+            'Username': username,
+            'Password': generate_password_hash(password),
+            'EmailAddress': email,
+            'Role': role
+        })
 
     return render_template('index.html')
 
@@ -58,9 +55,10 @@ def login():
         FROM accounts
         WHERE username = :Username
     """)
-    result = conn.execute(sql, {'Username': username}).mappings().fetchone()
-    print("Entered username: ", username)
-    print("DB result: ", result)
+    with engine.connect() as conn:
+        result = conn.execute(sql, {'Username': username}).mappings().fetchone()
+    # print("Entered username: ", username)
+    # print("DB result: ", result)
 
     if result:
         stored_password = result['password']
@@ -85,49 +83,146 @@ def logout():
 
 @app.route('/products', methods = ['GET']) #Handles getting all of the products and their info
 def products_page():
-    vendors = conn.execute(
-        text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")).fetchall()
-    return render_template('products.html', vendors=vendors)
+    with engine.connect() as conn:
+        rows = conn.execute(text("""
+            SELECT 
+                p.product_id,
+                p.name,
+                p.vendor,
+                p.price,
+                a.username AS vendor_name,
+                pi.image_path
+            FROM product p
+            LEFT JOIN product_images pi 
+                ON p.product_id = pi.product_id
+            LEFT JOIN accounts a
+                ON p.vendor = a.account_id
+        """)).mappings().all()
+
+    with engine.connect() as conn:
+        sizes_rows = conn.execute(text("""
+            SELECT product_id, size FROM product_sizes
+        """)).mappings().all()
+
+    with engine.connect() as conn:
+        colors_rows = conn.execute(text("""
+            SELECT product_id, color FROM product_colors
+        """)).mappings().all()
+
+    with engine.connect() as conn:
+        vendors = conn.execute(
+            text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
+        ).mappings().all()
+
+    products_dict = {}
+
+    for row in rows:
+        pid = row["product_id"]
+        if pid not in products_dict:
+            products_dict[pid] = {
+                "product_id": pid,
+                "name": row["name"],
+                "price": row["price"],
+                "vendor": row["vendor_name"],
+                "vendor_id": row["vendor"],
+                "images": [],
+                "sizes": [],
+                "colors": []
+            }
+
+        if row["image_path"]:
+            products_dict[pid]["images"].append(row["image_path"])
+
+    for s in sizes_rows:
+        pid = s["product_id"]
+        if pid in products_dict:
+            products_dict[pid]["sizes"].append(s["size"])
+
+    for c in colors_rows:
+        pid = c["product_id"]
+        if pid in products_dict:
+            products_dict[pid]["colors"].append(c["color"])
+
+    products = list(products_dict.values())
+
+    for p in products:
+        if not p["images"]:
+            p["images"] = ["Images/default.png"]
+
+    return render_template(
+        "products.html",
+        products=products,
+        vendors=vendors,
+        products_json=json.dumps(products)
+    )
+
+@app.route('/get_inbox', methods=['GET'])
+def get_inbox():
+    user_id = session.get('user_id')
+
+    # print("INBOX USER ID:", user_id)
+
+    if not user_id:
+        return jsonify([])
+
+    sql = text("""
+        SELECT
+            a.account_id,
+            a.username,
+            MAX(c.chat_id) as last_message_id
+        FROM chat c
+        JOIN accounts a
+            ON a.account_id =
+                CASE
+                    WHEN c.sender_id = :uid THEN c.receiver_id
+                    ELSE c.sender_id
+                END
+        WHERE c.sender_id = :uid OR c.receiver_id = :uid
+        GROUP BY a.account_id, a.username
+    """)
+    with engine.connect() as conn:
+        result = conn.execute(sql, {"uid": user_id}).mappings().all()
+        
+    inbox = [dict(row) for row in result]
+    
+    return jsonify(inbox)
 
 @app.route('/add_product', methods=['POST'])
 def add_product():
 
+    if 'user_id' not in session:
+        return redirect(url_for('login_register'))
+
     name = request.form.get('name')
     price = request.form.get('price')
-
     sizes = request.form.getlist('sizes')
     colors = request.form.getlist('colors')
+    images = request.form.getlist('images')  
 
-    vendor_id = session.get('user_id')
+    vendor = request.form.get('vendor')
 
-    sql = text("""
-        INSERT INTO product (name)
-        VALUES (:name)
-    """)
+    with engine.begin() as conn:
+        result = conn.execute(text("""
+            INSERT INTO product (name, vendor, price)
+            VALUES (:name, :vendor, :price)
+        """), {
+            'name': name,
+            'vendor': vendor,
+            'price': price
+        })
 
-    result = conn.execute(sql, {'name': name})
-    conn.commit()
+        product_id = result.lastrowid
 
-    product_id = result.lastrowid
+        
+        for size in sizes:
+            conn.execute(text("""
+                INSERT INTO product_sizes (product_id, size)
+                VALUES (:pid, :size)
+            """), {
+                'pid': product_id,
+                'size': size
+            })
 
-    sql2 = text("""
-        INSERT INTO vendor_product (vendor_id, product_id, price, available_inventory)
-        VALUES (:vendor_id, :product_id, :price, 100)
-    """)
-
-    conn.execute(sql2, {
-        'vendor_id': vendor_id,
-        'product_id': product_id,
-        'price': price
-    })
-
-    conn.commit()
-
-    for size in sizes:
-        conn.execute(text("""
-            INSERT INTO product_sizes (product_id, size)
-            VALUES (:pid, :size)
-        """), {'pid': product_id, 'size': size})
 
     for color in colors:
         if color.strip(): 
@@ -137,6 +232,7 @@ def add_product():
             """), {'pid': product_id, 'color': color})
     conn.commit()
     return redirect(url_for('products_page'))
+
 
 @app.route('/add_to_cart', methods = ['POST']) 
 def add_to_cart():
@@ -158,14 +254,13 @@ def send_chat():
         INSERT INTO chat (sender_id, receiver_id, text)
         VALUES (:sender_id, :receiver_id, :text)
     """)
-
-    conn.execute(sql, {
-        "sender_id": sender_id,
-        "receiver_id": receiver_id,
-        "text": text_msg
-    })
-
-    conn.commit()
+    
+    with engine.begin() as conn:
+      conn.execute(sql, {
+          "sender_id": sender_id,
+          "receiver_id": receiver_id,
+          "text": text_msg
+      })
 
     return jsonify({"status": "success"})
 
@@ -179,18 +274,15 @@ def get_chat():
         FROM chat
         WHERE (sender_id = :u1 AND receiver_id = :u2)
             OR (sender_id = :u2 AND receiver_id = :u1)
+        ORDER BY chat_id ASC
     """)
+    with engine.connect() as conn:
+      result = conn.execute(sql, {
+          "u1": user1,
+          "u2": user2
+      }).mappings().all()
 
-    result = conn.execute(sql, {
-        "u1": user1,
-        "u2": user2
-    }).mappings().all()
-
-    return jsonify(result)
-
-@app.route('/update_product', methods = ['POST']) 
-def update_product():
-    return render_template('products.html')
+    return jsonify({"status": "success"})
 
 @app.route('/delete_product', methods = ['POST'])
 def delete_product():
@@ -205,27 +297,60 @@ def cart_page():
     user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
     account_id = user_res['account_id'] if user_res else None
 
+    product_id = request.form.get('product_id')
+    role = session.get('role')
+
+    if not product_id:
+        return "Missing product_id", 400
+
+    if role not in ['admin', 'vendor']:
+        return "Unauthorized", 403
+    with engine.connect() as conn:
+        if role == 'vendor':
+            owner = conn.execute(text("""
+                SELECT vendor FROM product WHERE product_id = :pid
+            """), {'pid': product_id}).mappings().fetchone()
+
+            if not owner or owner['vendor'] != session.get('user_id'):
+                return "Not your product", 403
+
+    with engine.begin() as conn:
+        conn.execute(text("""
+            DELETE FROM product_images WHERE product_id = :pid
+        """), {'pid': product_id})
+
+        conn.execute(text("""
+            DELETE FROM product_sizes WHERE product_id = :pid
+        """), {'pid': product_id})
+
+        conn.execute(text("""
+            DELETE FROM product_colors WHERE product_id = :pid
+        """), {'pid': product_id})
+
+        conn.execute(text("""
+            DELETE FROM product WHERE product_id = :pid
+        """), {'pid': product_id})
+
+    return redirect(url_for('products_page'))
+
     query = text("""
         SELECT 
             p.product_id,
-            p.name, 
-            p.description,
-            p.images,
-            vp.price, 
-            a.username AS vendor_name,
-            o.order_id,
-            o.total_price,
-            o.date
-        FROM orders o
-        JOIN accounts a ON o.account_id = a.account_id
-        JOIN vendor_product vp ON a.account_id = vp.vendor_id
-        JOIN product p ON vp.product_id = p.product_id
-        WHERE o.account_id = :uid AND o.status = 'pending'
+            p.name,
+            p.price,
+            c.quantity
+        FROM cart c
+        JOIN product p ON c.product_id = p.product_id
+        WHERE c.account_id = :uid
     """)
-    
+
     cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
 
-    return render_template('cart.html', cart_items=cart_products)
+    total = sum(item['price'] * item['quantity'] for item in cart_products)
+
+    return render_template('cart.html', cart=cart_products, total=total)
+
+
 
 @app.route('/account', methods = ['GET', 'POST'])
 def account_page():
@@ -240,7 +365,9 @@ def account_page():
             FROM accounts
             WHERE username = :Username
         """)
-        user = conn.execute(sql, {'Username': username}).mappings().fetchone()
+
+        with engine.connect() as conn:
+            user = conn.execute(sql, {'Username': username}).mappings().fetchone()
         
         new_username = request.form.get('account_username')
         new_password = request.form.get('account_password')
@@ -262,16 +389,15 @@ def account_page():
                 last_name = :Last
             WHERE username = :CurrentUsername
         """)
-
-        conn.execute(sql, {
-            'Username': new_username,
-            'Password': hashed_password,
-            'Email': new_email,
-            'First': new_first,
-            'Last': new_last,
-            'CurrentUsername': username
-        })
-        conn.commit()
+        with engine.begin() as conn:
+            conn.execute(sql, {
+                'Username': new_username,
+                'Password': hashed_password,
+                'Email': new_email,
+                'First': new_first,
+                'Last': new_last,
+                'CurrentUsername': username
+            })
 
         session['username'] = new_username
 
@@ -283,7 +409,8 @@ def account_page():
         WHERE username = :Username
     """)
 
-    user = conn.execute(sql, {'Username': username}).mappings().fetchone()
+    with engine.connect() as conn:
+        user = conn.execute(sql, {'Username': username}).mappings().fetchone()
 
     return render_template('account.html', user=user)
 
@@ -293,20 +420,34 @@ def admin_complaint_page():
 
 @app.route('/vendor_chat', methods = ['GET', 'POST'])
 def vendor_chat_page():
-    vendors = conn.execute(
-        text("SELECT account_id, username FROM accounts WHERE role = 'user'")
-    ).fetchall()
+    with engine.connect() as conn:
+        vendors = conn.execute(
+            text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
+        ).fetchall()
+
+    return render_template('vendorChat.html', vendors=vendors)
+
+@app.route('/vendor_chat')
+def vendor_chat():
     return render_template('vendorChat.html')
 
 @app.route('/admin_confirm_order', methods=['GET', 'POST'])
 def admin_confirm_order_page():
     if request.method == 'POST':
         order_id = request.form.get('order_id')
-        sql = text("UPDATE orders SET status = 'confirmed' WHERE order_id = :oid")
-        conn.execute(sql, {"oid": order_id})
-        conn.commit()
-        return "Success", 200
 
+        with engine.connect() as conn:
+            sql = text("UPDATE orders SET status = 'confirmed' WHERE order_id = :oid")
+            conn.execute(sql, {"oid": order_id})
+        return "Success", 200
+    
+    with engine.connect() as conn:
+        orders_query = text("""
+            SELECT order_id, account_id, date, total_price 
+            FROM orders 
+            WHERE status = 'pending'
+        """)
+        orders = conn.execute(orders_query).mappings().fetchall()
     orders_query = text("""
         SELECT o.order_id, a.username, o.date, o.total_price 
         FROM orders o
@@ -323,41 +464,42 @@ def feedback_page():
     if request.method == 'POST':
         category = request.form.get('category')
         username = session.get('username')
+        
+        with engine.begin() as conn:
+            user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+            account_id = user_res['account_id'] if user_res else None
 
-        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
-        account_id = user_res['account_id'] if user_res else None
+            if category == 'Review':
+                sql = text("""
+                    INSERT INTO review (name, description, stars, date, account_id, product_id)
+                    VALUES (:name, :desc, :stars, CURDATE(), :uid, :pid)
+                """)
+                conn.execute(sql, {
+                    'name': f"Review by {username}",
+                    'desc': request.form.get('review_text'),
+                    'stars': request.form.get('rating'),
+                    'uid': account_id,
+                    'pid': request.form.get('product_id')
+                })
 
-        if category == 'Review':
-            sql = text("""
-                INSERT INTO review (name, description, stars, date, account_id, product_id)
-                VALUES (:name, :desc, :stars, CURDATE(), :uid, :pid)
-            """)
-            conn.execute(sql, {
-                'name': f"Review by {username}",
-                'desc': request.form.get('review_text'),
-                'stars': request.form.get('rating'),
-                'uid': account_id,
-                'pid': request.form.get('product_id')
-            })
+            elif category == 'Refund':
+                sql = text("""
+                    INSERT INTO returns (name, description, date, status, account_id)
+                    VALUES (:name, :desc, CURDATE(), 'pending', :uid)
+                """)
+                conn.execute(sql, {
+                    'name': f"Return Request - Order {request.form.get('order_id')}",
+                    'desc': request.form.get('review_text'),
+                    'uid': account_id
+                })
 
-        elif category == 'Refund':
-            sql = text("""
-                INSERT INTO returns (name, description, date, status, account_id)
-                VALUES (:name, :desc, CURDATE(), 'pending', :uid)
-            """)
-            conn.execute(sql, {
-                'name': f"Return Request - Order {request.form.get('order_id')}",
-                'desc': request.form.get('review_text'),
-                'uid': account_id
-            })
+            # elif category == 'Complaint':
+            #     print(f"Complaint received from {username}: {request.form.get('review_text')}")
 
-        elif category == 'Complaint':
-            print(f"Complaint received from {username}: {request.form.get('review_text')}")
-
-        conn.commit()
         return redirect(url_for('feedback_page'))
 
     return render_template('feedback.html')
+  
 @app.route('/create_order', methods=['POST'])
 def create_order():
     account_id = request.form.get('account_id')
@@ -367,15 +509,12 @@ def create_order():
         INSERT INTO orders (account_id, date, status, total_price)
         VALUES (:account_id, CURDATE(), 'pending', :total_price)
     """)
-
-    conn.execute(sql, {
-        "account_id": account_id,
-        "total_price": total_price
-    })
-    conn.commit()
+    with engine.begin() as conn:
+        conn.execute(sql, {
+            "account_id": account_id,
+            "total_price": total_price
+        })
 
     return jsonify({"status": "order_created"}), 200
-
-
 if __name__ == "__main__":
     app.run(debug=True)
