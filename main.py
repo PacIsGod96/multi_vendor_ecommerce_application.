@@ -45,26 +45,26 @@ def register_post():
 
     return render_template('index.html')
 
-@app.route('/login', methods = ['POST']) #handles sending the info from login to compare and the let the user login
+@app.route('/login', methods = ['POST']) 
 def login():
     username = request.form.get('login_username')
     password = request.form.get('login_password')
 
+    # 1. Fetch account_id along with other details
     sql = text("""
-        SELECT username, password, role
+        SELECT account_id, username, password, role
         FROM accounts
         WHERE username = :Username
     """)
-    with engine.connect() as conn:
-        result = conn.execute(sql, {'Username': username}).mappings().fetchone()
-    # print("Entered username: ", username)
-    # print("DB result: ", result)
+    result = conn.execute(sql, {'Username': username}).mappings().fetchone()
 
     if result:
         stored_password = result['password']
         role = result['role']
 
         if check_password_hash(stored_password, password):
+            # 2. Store the correct key ('user_id') in the session
+            session['user_id'] = result['account_id'] 
             session['username'] = result['username']
             session['role'] = role
 
@@ -72,9 +72,7 @@ def login():
         else: 
             return "Incorrect password", 401
     else:
-        return "Username not found", 404 
-        
-    return render_template('index.html')
+        return "Username not found", 404
 
 @app.route('/logout', methods = ['GET']) #Handles loging out
 def logout():
@@ -189,40 +187,46 @@ def get_inbox():
 
 @app.route('/add_product', methods=['POST'])
 def add_product():
-
-    if 'user_id' not in session:
-        return redirect(url_for('login_register'))
+    # Make sure a vendor is actually logged in
+    vendor_id = session.get('user_id')
+    if not vendor_id:
+        return "Unauthorized: Please log in as a vendor", 401
 
     name = request.form.get('name')
     price = request.form.get('price')
     sizes = request.form.getlist('sizes')
     colors = request.form.getlist('colors')
-    images = request.form.getlist('images')  
 
-    vendor = request.form.get('vendor')
+    sql = text("""
+        INSERT INTO product (name)
+        VALUES (:name)
+    """)
 
-    with engine.begin() as conn:
-        result = conn.execute(text("""
-            INSERT INTO product (name, vendor, price)
-            VALUES (:name, :vendor, :price)
-        """), {
-            'name': name,
-            'vendor': vendor,
-            'price': price
-        })
+    result = conn.execute(sql, {'name': name})
+    conn.commit()
 
-        product_id = result.lastrowid
+    # Safely get the newly created product_id
+    # inserted_primary_key returns a tuple, e.g., (1,)
+    product_id = result.inserted_primary_key[0] 
 
-        
-        for size in sizes:
+    sql2 = text("""
+        INSERT INTO vendor_product (vendor_id, product_id, price, available_inventory)
+        VALUES (:vendor_id, :product_id, :price, 100)
+    """)
+
+    conn.execute(sql2, {
+        'vendor_id': vendor_id,
+        'product_id': product_id,
+        'price': price
+    })
+    conn.commit()
+
+    for size in sizes:
+        if size.strip():
             conn.execute(text("""
                 INSERT INTO product_sizes (product_id, size)
                 VALUES (:pid, :size)
-            """), {
-                'pid': product_id,
-                'size': size
-            })
-
+            """), {'pid': product_id, 'size': size})
 
     for color in colors:
         if color.strip(): 
@@ -230,6 +234,7 @@ def add_product():
                 INSERT INTO product_colors (product_id, color)
                 VALUES (:pid, :color)
             """), {'pid': product_id, 'color': color})
+            
     conn.commit()
     return redirect(url_for('products_page'))
 
@@ -455,8 +460,24 @@ def admin_confirm_order_page():
         WHERE o.status = 'pending'
     """)
     orders = conn.execute(orders_query).mappings().fetchall()
+# @app.route('/admin_confirm_order', methods=['GET', 'POST'])
+# def admin_confirm_order_page():
+#     if request.method == 'POST':
+#         order_id = request.form.get('order_id')
+#         sql = text("  orders SET status = 'confirmed' WHERE order_id = :oid")
+#         conn.execute(sql, {"oid": order_id})
+#         conn.commit()
+#         return "Success", 200
 
-    return render_template('adminConfirmOrder.html', orders=orders)
+#     orders_query = text("""
+#         SELECT o.order_id, a.username, o.date, o.total_price 
+#         FROM orders o
+#         JOIN accounts a ON o.account_id = a.account_id
+#         WHERE o.status = 'pending'
+#     """)
+#     orders = conn.execute(orders_query).mappings().fetchall()
+
+#     return render_template('adminConfirmOrder.html', orders=orders)
 
 
 @app.route('/feedback', methods=['GET', 'POST'])
@@ -468,6 +489,14 @@ def feedback_page():
         with engine.begin() as conn:
             user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
             account_id = user_res['account_id'] if user_res else None
+# @app.route('/feedback', methods=['GET', 'POST'])
+# def feedback_page():
+#     if request.method == 'POST':
+#         category = request.form.get('category')
+#         username = session.get('username')
+
+#         user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+#         account_id = user_res['account_id'] if user_res else None
 
             if category == 'Review':
                 sql = text("""
@@ -481,6 +510,18 @@ def feedback_page():
                     'uid': account_id,
                     'pid': request.form.get('product_id')
                 })
+#         if category == 'Review':
+#             sql = text("""
+#                 INSERT INTO review (name, description, stars, date, account_id, product_id)
+#                 VALUES (:name, :desc, :stars, CURDATE(), :uid, :pid)
+#             """)
+#             conn.execute(sql, {
+#                 'name': f"Review by {username}",
+#                 'desc': request.form.get('review_text'),
+#                 'stars': request.form.get('rating'),
+#                 'uid': account_id,
+#                 'pid': request.form.get('product_id')
+#             })
 
             elif category == 'Refund':
                 sql = text("""
@@ -492,11 +533,24 @@ def feedback_page():
                     'desc': request.form.get('review_text'),
                     'uid': account_id
                 })
+#         elif category == 'Refund':
+#             sql = text("""
+#                 INSERT INTO returns (name, description, date, status, account_id)
+#                 VALUES (:name, :desc, CURDATE(), 'pending', :uid)
+#             """)
+#             conn.execute(sql, {
+#                 'name': f"Return Request - Order {request.form.get('order_id')}",
+#                 'desc': request.form.get('review_text'),
+#                 'uid': account_id
+#             })
 
             # elif category == 'Complaint':
             #     print(f"Complaint received from {username}: {request.form.get('review_text')}")
+#         elif category == 'Complaint':
+#             print(f"Complaint received from {username}: {request.form.get('review_text')}")
 
-        return redirect(url_for('feedback_page'))
+#         conn.commit()
+#         return redirect(url_for('feedback_page'))
 
     return render_template('feedback.html')
   
