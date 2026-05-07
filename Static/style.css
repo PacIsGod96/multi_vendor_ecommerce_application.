@@ -18,21 +18,21 @@ header {
 }
 
 .logout-btn {
-    width: 150px;
-    padding: 5px;
     display: block;
     cursor: pointer;
     border: 2px solid #391361;
-    margin-top: 12px;
     background-color: #fff;
     border-radius: 10px;
     color: #391361;
     text-align: center;
     text-decoration: none;
+    width: 140px;
+    margin-top: 12px;
 }
 
 .header-logo {
     max-width: 15%;
+    min-width: 200px;
 }
 
 .cart {
@@ -76,14 +76,22 @@ main {
     margin: 40px;
 }
 
+.pointer {
+    cursor: pointer;
+} 
+
 .filter_title {
     font-size: 1.5em;
 }
 
+#vendor-sort {
+    border: 1px solid #000;
+}
+
 .products-main-grid {
-    display: grid;
-    grid-template-columns: 20% 80%;
-    margin-top: 30px;
+    padding-top: 30px;
+    display: block;
+    margin: 0 auto;
 }
 
 .products {
@@ -95,23 +103,22 @@ main {
     border: 2px solid #391361;
     border-radius: 8px;
     padding: 20px;
-    margin: 20px
+    margin: 20px;
+    width: 100%;
+    max-width: 250px;
 }
 
 .products div img {
     display: block;
-    width: 200px;
-    margin: 0 auto;
+    width: 80%;
+    margin: 20px auto;
+    max-width: 200px;
 }
 
 .product-vendor-name {
     display: block;
     text-decoration: underline;
     cursor: pointer;
-}
-
-.products div p {
-    text-indent: 26px
 }
 
 .products div .product-vendor-name, .product-vendor-name {
@@ -121,20 +128,26 @@ main {
 
 .products div .product-btn-grid {
     border: 0;
-    display: flex;
-    justify-content: space-evenly;
-    margin: 0;
     padding: 0;
-}
-
-.products div .product-btn-grid p {
-    text-indent: 0px;
+    margin: 20px 0 0 0;
 }
 
 .products div .product-btn-grid a {
     text-decoration: underline;
     cursor: pointer;
     font-size: 0.9em;
+    text-align: center;
+}
+
+.product-vender-name {
+    display: block;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.products div .product-vender-name, .product-vender-name {
+    font-size: .75em;
+    margin-bottom: 8px
 }
 
 #product-reset {
@@ -157,6 +170,19 @@ main {
     border-radius: 20px;
     margin: 0 auto;
     cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #fff;
+    margin: 10px 0;
+    padding: 5px;
+    text-decoration: underline;
+    font-size: 0.9em;
+}
+
+.products-main-grid #filer-div {
+    display: block;
+    margin: 0 auto;
 }
 
 /*add product pop up*/
@@ -302,13 +328,6 @@ main {
     margin-right: 6px;
 }
 
-.pop-up img {
-    display: block;
-    width: 300px;
-    margin-bottom: 20px;
-    padding: 0 20px;
-}
-
 .pop-up-carosel {
     display: flex;
     justify-content: space-between;
@@ -323,11 +342,26 @@ main {
     width: 400px;
 }
 
+.close-pop-up {
+    background-color: #fff;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
 .delete-product-txt {
     text-align: center;
     font-size: 1.5em;
     color: #391361;
     margin-top: 42.5%;
+}
+
+.pop-up img {
+    display: block;
+    width: 80%;
+    padding: 0 20px;
+    margin-bottom: 4px;
 }
 
 .delete-btn-grid {
@@ -498,7 +532,7 @@ footer {
     cursor: pointer;
     text-align: center;
     font-weight: bold;
-    color: blue;
+    color: #391361;
 }
 
 .switch:hover {
@@ -1254,5 +1288,36 @@ textarea {
 .shirt-rating label:hover ~ label,
 .shirt-rating input:checked ~ label {
     filter: drop-shadow(0 0 5px rgba(255, 69, 0, 0.5));
+}
 
+@media screen and (min-width: 800px) {
+    .products-main-grid {
+        display: grid;
+        grid-template-columns: 20% 80%;
+    }
+
+    .products div .product-btn-grid {
+        display: flex;
+        justify-content: space-evenly;
+    }
+
+    .products div .product-btn-grid p {
+        text-indent: 0px;
+    }
+
+    .products div p {
+        text-indent: 26px
+    }
+
+    .delete-btn {
+        margin-top: -10px;
+    }
+}
+
+@media screen and (min-width: 1440px) {
+    .logout-btn {
+        height: 20px;
+        padding: 4px 0;
+        margin-top: 16px;
+    }
 }

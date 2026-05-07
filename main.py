@@ -2,11 +2,10 @@ from flask import Flask, render_template, request, url_for, redirect, session, j
 from sqlalchemy import create_engine, text, bindparam
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
-import json
 
 app = Flask(__name__)
 
-app.secret_key = app.secret_key = "JohnWalmart"
+app.secret_key = os.urandom(24)
 
 conn_str = "mysql://root:cset155@localhost/multi_vendor_ecommerce"
 engine = create_engine(conn_str, echo=True)
@@ -52,7 +51,7 @@ def login():
     password = request.form.get('login_password')
 
     sql = text("""
-        SELECT account_id, username, password, role
+        SELECT username, password, role
         FROM accounts
         WHERE username = :Username
     """)
@@ -66,7 +65,6 @@ def login():
         role = result['role']
 
         if check_password_hash(stored_password, password):
-            session['user_id'] = result['account_id']
             session['username'] = result['username']
             session['role'] = role
 
@@ -83,9 +81,8 @@ def logout():
     session.clear()
     return redirect(url_for('login_register'))
 
-@app.route('/products', methods=['GET'])
+@app.route('/products', methods = ['GET']) #Handles getting all of the products and their info
 def products_page():
-
     with engine.connect() as conn:
         rows = conn.execute(text("""
             SELECT 
@@ -185,52 +182,10 @@ def get_inbox():
     """)
     with engine.connect() as conn:
         result = conn.execute(sql, {"uid": user_id}).mappings().all()
-
+        
     inbox = [dict(row) for row in result]
-
-    return jsonify(inbox)
-
-@app.route('/get_chat', methods=['GET'])
-def get_chat():
-    user1 = int(request.args.get('user1'))
-    user2 = int(request.args.get('user2'))
-
-    sql = text("""
-        SELECT *
-        FROM chat
-        WHERE (sender_id = :u1 AND receiver_id = :u2)
-            OR (sender_id = :u2 AND receiver_id = :u1)
-        ORDER BY chat_id ASC
-    """)
-    with engine.connect() as conn:
-        result = conn.execute(sql, {
-            "u1": user1,
-            "u2": user2
-        }).mappings().all()
-
-    return jsonify([dict(row) for row in result])
-
-@app.route('/send_chat', methods=['POST'])
-def send_chat():
-    data = request.get_json()
     
-    sender_id = int(data['sender_id'])
-    receiver_id = int(data['receiver_id'])
-    text_msg = data['text']
-
-    sql = text("""
-        INSERT INTO chat (sender_id, receiver_id, text)
-        VALUES (:sender_id, :receiver_id, :text)
-    """)
-
-    with engine.begin() as conn:
-        conn.execute(sql, {
-            "sender_id": sender_id,
-            "receiver_id": receiver_id,
-            "text": text_msg
-        })
-
-    return jsonify({"status": "success"})
+    return jsonify(inbox)
 
 @app.route('/add_product', methods=['POST'])
 def add_product():
@@ -391,11 +346,68 @@ def update_product():
 
     return redirect(url_for('products_page'))
 
-@app.route('/delete_product', methods=['POST'])
-def delete_product():
+@app.route('/add_to_cart', methods = ['POST']) 
+def add_to_cart():
+    return render_template('products.html')
 
-    if 'user_id' not in session:
+@app.route('/send_review_complaint', methods = ['POST']) 
+def send_review_complaint():
+    return render_template('products.html')
+
+@app.route('/send_chat', methods = ['POST'])
+def send_chat():
+    data = request.get_json()
+
+    sender_id = data['sender_id']
+    receiver_id = data['receiver_id']
+    text_msg = data['text']
+
+    sql = text("""
+        INSERT INTO chat (sender_id, receiver_id, text)
+        VALUES (:sender_id, :receiver_id, :text)
+    """)
+    
+    with engine.begin() as conn:
+      conn.execute(sql, {
+          "sender_id": sender_id,
+          "receiver_id": receiver_id,
+          "text": text_msg
+      })
+
+    return jsonify({"status": "success"})
+
+@app.route('/get_chat', methods=['GET'])
+def get_chat():
+    user1 = request.args.get('user1')
+    user2 = request.args.get('user2')
+
+    sql = text("""
+        SELECT *
+        FROM chat
+        WHERE (sender_id = :u1 AND receiver_id = :u2)
+            OR (sender_id = :u2 AND receiver_id = :u1)
+        ORDER BY chat_id ASC
+    """)
+    with engine.connect() as conn:
+      result = conn.execute(sql, {
+          "u1": user1,
+          "u2": user2
+      }).mappings().all()
+
+    return jsonify({"status": "success"})
+
+@app.route('/delete_product', methods = ['POST'])
+def delete_product():
+    return render_template('products.html')
+
+@app.route('/cart', methods=['GET', 'POST']) 
+def cart_page():
+    if 'username' not in session:
         return redirect(url_for('login_register'))
+    
+    username = session['username']
+    user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+    account_id = user_res['account_id'] if user_res else None
 
     product_id = request.form.get('product_id')
     role = session.get('role')
@@ -433,10 +445,27 @@ def delete_product():
 
     return redirect(url_for('products_page'))
 
+    query = text("""
+        SELECT 
+            p.product_id,
+            p.name, 
+            p.description,
+            p.images,
+            vp.price, 
+            a.username AS vendor_name,
+            o.order_id,
+            o.total_price,
+            o.date
+        FROM orders o
+        JOIN accounts a ON o.account_id = a.account_id
+        JOIN vendor_product vp ON a.account_id = vp.vendor_id
+        JOIN product p ON vp.product_id = p.product_id
+        WHERE o.account_id = :uid AND o.status = 'pending'
+    """)
+    
+    cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
 
-@app.route('/cart', methods = ['GET', 'POST']) 
-def cart_page():
-    return render_template('cart.html')
+    return render_template('cart.html', cart_items=cart_products)
 
 @app.route('/account', methods = ['GET', 'POST'])
 def account_page():
@@ -504,7 +533,7 @@ def account_page():
 def admin_complaint_page():
     return render_template('adminComplaint.html')
 
-@app.route('/vendor_chat', methods=['GET', 'POST'])
+@app.route('/vendor_chat', methods = ['GET', 'POST'])
 def vendor_chat_page():
     with engine.connect() as conn:
         vendors = conn.execute(
@@ -534,6 +563,13 @@ def admin_confirm_order_page():
             WHERE status = 'pending'
         """)
         orders = conn.execute(orders_query).mappings().fetchall()
+    orders_query = text("""
+        SELECT o.order_id, a.username, o.date, o.total_price 
+        FROM orders o
+        JOIN accounts a ON o.account_id = a.account_id
+        WHERE o.status = 'pending'
+    """)
+    orders = conn.execute(orders_query).mappings().fetchall()
 
     return render_template('adminConfirmOrder.html', orders=orders)
 
@@ -578,7 +614,7 @@ def feedback_page():
         return redirect(url_for('feedback_page'))
 
     return render_template('feedback.html')
-
+  
 @app.route('/create_order', methods=['POST'])
 def create_order():
     account_id = request.form.get('account_id')
@@ -595,6 +631,5 @@ def create_order():
         })
 
     return jsonify({"status": "order_created"}), 200
-
 if __name__ == "__main__":
     app.run(debug=True)
