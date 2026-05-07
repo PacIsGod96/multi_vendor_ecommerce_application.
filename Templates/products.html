@@ -39,7 +39,7 @@
     <button onclick="confirmProduct()" class="close-pop-up">X</button>
     <h1 class="add-product-title">Add Product</h1>
     <p class="center-txt">* - Required</p><br>
-    <form class="addform" action="/add_product" method="POST">
+    <form class="addform" action="/add_product" method="POST" enctype="multipart/form-data">
         <label for="name">Name of Product: *</label>
         <input name="name" type="text" required>
         <label for="price">Price:</label>
@@ -71,21 +71,27 @@
             </div>
         </div>
         <div class="upload-section">
-            <p>Product Images (static paths):</p>
+            <p>Product Images:</p>
             <label>Image 1:</label>
-            <input type="text" name="images" placeholder="Images/name.type">
+            <input type="file" name="images" accept="image/*">
             <label>Image 2:</label>
-            <input type="text" name="images" placeholder="Images/name.type">
+            <input type="file" name="images" accept="image/*">
             <label>Image 3:</label>
-            <input type="text" name="images" placeholder="Images/name.type">
+            <input type="file" name="images" accept="image/*">
         </div>
         
-    <label>Vendor:</label>
-        <select id="vendor" name="vendor">
-            {% for vendor in vendors %}
-                <option value="{{ vendor.account_id }}">{{ vendor.username }}</option>
-            {% endfor %}
-        </select>
+        <label>Vendor: *</label>
+        {% if session.get('role') == 'admin' %}
+            <select id="vendor" name="vendor" required>
+                <option value="" disabled selected>Select a vendor</option>
+                {% for vendor in vendors %}
+                    <option value="{{ vendor.account_id }}">{{ vendor.username }}</option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <input type="text" value="{{ session.get('username') }}" readonly>
+            <input type="hidden" name="vendor" value="{{ session.get('user_id') }}">
+        {% endif %}
 
         <div class="center">
             <input type="submit" value="Add Product" class="confirm-add-product-btn">
@@ -96,7 +102,7 @@
     <button onclick="confirmEdit()" class="close-pop-up">X</button>
     <h1 class="add-product-title">Edit Product</h1>
     <p class="center-txt">Leave fields blank to keep current settings</p><br>
-    <form class="addform" action="/update_product" method="POST">
+    <form class="addform" action="/update_product" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="product_id" id="edit_product_id">
 
         <label for="edit_name">Name of Product:</label>
@@ -133,13 +139,13 @@
         </div>
         
         <div class="upload-section">
-            <p>Product Images (Leave completely blank to keep current images):</p>
+            <p>Product Images (Leave blank to keep current images):</p>
             <label>Image 1:</label>
-            <input type="text" name="images" placeholder="Images/name.type" id="edit_image_0">
+            <input type="file" name="images" accept="image/*">
             <label>Image 2:</label>
-            <input type="text" name="images" placeholder="Images/name.type" id="edit_image_1">
+            <input type="file" name="images" accept="image/*">
             <label>Image 3:</label>
-            <input type="text" name="images" placeholder="Images/name.type" id="edit_image_2">
+            <input type="file" name="images" accept="image/*">
         </div>
 
         <div class="center">
@@ -154,11 +160,15 @@
 
         <label>Vendor:</label>
         <select id="vendor_sort" name="vendor_sort">
+            <option value="">-- All Vendors --</option>
             {% for vendor in vendors %}
-                <option value="{{ vendor.account_id }}">{{ vendor.username }}</option>
+                <option value="{{ vendor.account_id }}" 
+                    {% if selected_vendor|int == vendor.account_id|int %}selected{% endif %}>
+                    {{ vendor.username }}
+                </option>
             {% endfor %}
-        </select><br>
-
+        </select>
+        <br>
         <button onclick="resetProducts()" id="product-reset">Reset</button><br>
         {% if session.get('role') in ['vendor', 'admin'] %}
             <a class="add-product-btn" onclick="addProduct()">Add Product</a>
@@ -181,13 +191,13 @@
                 <a onclick='popUp({{ product|tojson }})'>Add To Cart</a>
             </div>
 
-            {% if session.get('role') in ['vendor', 'admin'] %}
+            {% if session.get('role') == 'admin' or (session.get('role') == 'vendor' and product.vendor_id|int == session.get('user_id')|int) %}
             <div class="product-btn-grid">
                 <a class="edit-product-btn" onclick='editProduct({{ product|tojson }})'>Edit Product</a>
                 <form action="{{ url_for('delete_product') }}" method="POST" onsubmit="return confirm('Delete this product?');">
-                <input type="hidden" name="product_id" value="{{ product.product_id }}">
-                <button type="submit" class="delete-btn">Delete</button>
-            </form>
+                    <input type="hidden" name="product_id" value="{{ product.product_id }}">
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
             </div>
             {% endif %}
 
@@ -217,7 +227,28 @@
 </div>
 
 <script>
-    window.currentUserId = {{ session.get('user_id') or 'null'}}
+    // 1. Your existing User ID variable
+    window.currentUserId = {{ session.get('user_id') or 'null' }};
+
+    // 2. The Filter Logic
+    // This waits for you to pick a vendor and then reloads the page
+    document.getElementById('vendor_sort').addEventListener('change', function() {
+        const vendorId = this.value;
+        if (vendorId) {
+            // Redirects to /products?vendor=5
+            window.location.href = '/products?vendor=' + vendorId;
+        } else {
+            // If they pick an empty option, just go back to all products
+            window.location.href = '/products';
+        }
+    });
+
+    // 3. The Reset Button Logic
+    function resetProducts() {
+        window.location.href = '/products';
+    }
+
+    // 4. Any other existing functions (popUp, editProduct, etc.) go here...
 </script>
 
 <script src="{{ url_for('static', filename='pop_up_chat.js')}}"></script>
