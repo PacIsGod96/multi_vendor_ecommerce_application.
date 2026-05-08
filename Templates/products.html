@@ -42,7 +42,7 @@
     <form class="addform" action="/add_product" method="POST" enctype="multipart/form-data">
         <label for="name">Name of Product: *</label>
         <input name="name" type="text" required>
-        <label for="price">Price:</label>
+        <label for="price">Price: *</label>
         <input name="price" type="number" required>
         <div class="product-options">
 
@@ -72,8 +72,8 @@
         </div>
         <div class="upload-section">
             <p>Product Images:</p>
-            <label>Image 1:</label>
-            <input type="file" name="images" accept="image/*">
+            <label>Image 1: *</label>
+            <input type="file" name="images" accept="image/*" required>
             <label>Image 2:</label>
             <input type="file" name="images" accept="image/*">
             <label>Image 3:</label>
