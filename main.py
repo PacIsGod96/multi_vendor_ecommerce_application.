@@ -150,6 +150,7 @@ def account_page():
 def products_page():
     # 1. Get the filter from the URL (if it exists)
     selected_vendor = request.args.get('vendor')
+    search_text = request.args.get('search')
 
     with engine.connect() as conn:
         # 2. Build the Product Query
@@ -163,26 +164,44 @@ def products_page():
             LEFT JOIN accounts a ON p.vendor = a.account_id
         """
         
+        filters = []
+        params = {}
+
         if selected_vendor:
-            product_sql += " WHERE p.vendor = :v_id"
-            rows = conn.execute(text(product_sql), {'v_id': selected_vendor}).mappings().all()
-            
-            # Optimization: Only fetch attributes for the filtered products
-            sizes_rows = conn.execute(text("""
-                SELECT ps.product_id, ps.size FROM product_sizes ps
-                JOIN product p ON ps.product_id = p.product_id
-                WHERE p.vendor = :v_id
-            """), {'v_id': selected_vendor}).mappings().all()
-            
-            colors_rows = conn.execute(text("""
-                SELECT pc.product_id, pc.color FROM product_colors pc
-                JOIN product p ON pc.product_id = p.product_id
-                WHERE p.vendor = :v_id
-            """), {'v_id': selected_vendor}).mappings().all()
-        else:
-            rows = conn.execute(text(product_sql)).mappings().all()
-            sizes_rows = conn.execute(text("SELECT product_id, size FROM product_sizes")).mappings().all()
-            colors_rows = conn.execute(text("SELECT product_id, color FROM product_colors")).mappings().all()
+            filters.append("p.vendor = :v_id")
+            params['v_id'] = selected_vendor
+
+        if search_text:
+            filters.append("p.name LIKE :search")
+            params['search'] = f"%{search_text}%"
+
+        if filters:
+            product_sql += " WHERE " + " AND ".join(filters)
+
+        rows = conn.execute(text(product_sql), params).mappings().all()
+
+        # Fetch sizes
+        sizes_sql = """
+            SELECT ps.product_id, ps.size
+            FROM product_sizes ps
+            JOIN product p ON ps.product_id = p.product_id
+        """
+
+        # Fetch colors
+        colors_sql = """
+            SELECT pc.product_id, pc.color
+            FROM product_colors pc
+            JOIN product p ON pc.product_id = p.product_id
+        """
+
+        if filters:
+            where_clause = " WHERE " + " AND ".join(filters)
+
+            sizes_sql += where_clause
+            colors_sql += where_clause
+
+        sizes_rows = conn.execute(text(sizes_sql), params).mappings().all()
+        colors_rows = conn.execute(text(colors_sql), params).mappings().all()
 
         # 3. Get all vendors for the dropdown menu
         vendors = conn.execute(
@@ -422,83 +441,91 @@ def add_to_cart():
         return redirect(url_for('login_register'))
 
     product_id = request.form.get('product_id')
-    price = request.form.get('price')
+    size = request.form.get('size')
+    color = request.form.get('color')
+    quantity = int(request.form.get('quantity', 1))
+
     username = session['username']
+
     with engine.connect() as conn:
-        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+        user_res = conn.execute(
+            text("SELECT account_id FROM accounts WHERE username = :u"),
+            {"u": username}
+        ).mappings().fetchone()
+
     account_id = user_res['account_id']
 
-    sql = text("""
-        INSERT INTO orders (account_id, date, status, total_price)
-        VALUES (:uid, CURDATE(), 'pending', :price)
-    """)
     with engine.begin() as conn:
-        conn.execute(sql, {"uid": account_id, "price": price})
+        existing = conn.execute(
+            text("""
+                SELECT quantity FROM cart 
+                WHERE account_id = :uid AND product_id = :pid 
+                AND size = :size AND color = :color
+            """),
+            {"uid": account_id, "pid": product_id, "size": size, "color": color}
+        ).mappings().fetchone()
 
-    return redirect(url_for('products_page'))
+        if existing:
+            conn.execute(
+                text("""
+                    UPDATE cart 
+                    SET quantity = quantity + :qty 
+                    WHERE account_id = :uid AND product_id = :pid 
+                    AND size = :size AND color = :color
+                """),
+                {"uid": account_id, "pid": product_id, "qty": quantity, "size": size, "color": color}
+            )
+        else:
+            conn.execute(
+                text("""
+                    INSERT INTO cart (account_id, product_id, size, color, quantity)
+                    VALUES (:uid, :pid, :size, :color, :qty)
+                """),
+                {"uid": account_id, "pid": product_id, "size": size, "color": color, "qty": quantity}
+            )
 
-@app.route('/cart', methods=['GET', 'POST']) 
+    return redirect(url_for('cart_page'))
+
+
+
+@app.route('/cart', methods=['GET'])
 def cart_page():
     if 'username' not in session:
         return redirect(url_for('login_register'))
     
     username = session['username']
+
     with engine.connect() as conn:
-        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
-    account_id = user_res['account_id'] if user_res else None
+        user_res = conn.execute(
+            text("SELECT account_id FROM accounts WHERE username = :u"),
+            {"u": username}
+        ).mappings().fetchone()
 
-    product_id = request.form.get('product_id')
-    role = session.get('role')
-
-    if not product_id:
-        return "Missing product_id", 400
-
-    if role not in ['admin', 'vendor']:
-        return "Unauthorized", 403
-    with engine.connect() as conn:
-        if role == 'vendor':
-            owner = conn.execute(text("""
-                SELECT vendor FROM product WHERE product_id = :pid
-            """), {'pid': product_id}).mappings().fetchone()
-
-            if not owner or owner['vendor'] != session.get('user_id'):
-                return "Not your product", 403
-
-    with engine.begin() as conn:
-        conn.execute(text("""
-            DELETE FROM product_images WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product_sizes WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product_colors WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product WHERE product_id = :pid
-        """), {'pid': product_id})
-
-    return redirect(url_for('products_page'))
+    account_id = user_res['account_id']
 
     query = text("""
         SELECT 
             p.product_id,
             p.name,
             p.price,
+            p.vendor AS vendor_name,
+            pi.image_path,
+            c.cart_item_id,
             c.quantity
         FROM cart c
         JOIN product p ON c.product_id = p.product_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id
         WHERE c.account_id = :uid
     """)
 
-    cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
+    with engine.connect() as conn:
+        cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
 
     total = sum(item['price'] * item['quantity'] for item in cart_products)
 
     return render_template('cart.html', cart=cart_products, total=total)
+
+
 #-------------------------------------------------------End of backend for cart-----------------------------------------------------------
 
 #------------------------------------------------------Backend for orders------------------------------------------------------------
