@@ -38,8 +38,10 @@
             <input type="number" id="popup-qty" value="1" min="1">
         </div>
     </div>
-    <button class="confirm" onclick="confirmAdd()">Confirm & Add</button>
+
+    <!-- ❌ REMOVED BROKEN FORM HERE -->
 </div>
+
 <div class="addProduct" id="addProduct">
     <button onclick="confirmProduct()" class="close-pop-up">X</button>
     <h1 class="add-product-title">Add Product</h1>
@@ -103,6 +105,7 @@
         </div>
     </form>
 </div>
+
 <div class="addProduct" id="editProduct">
     <button onclick="confirmEdit()" class="close-pop-up">X</button>
     <h1 class="add-product-title">Edit Product</h1>
@@ -158,6 +161,7 @@
         </div>
     </form>
 </div>
+
 <div class="products-main-grid">
 
     <div id="filter-div">
@@ -183,7 +187,7 @@
     <div class="products">
         {% for product in products %}
         <div>
-                <img src="{{ url_for('static', filename=product.images[0]) }}" alt="product">
+            <img src="{{ url_for('static', filename=product.images[0]) }}" alt="product">
             <div class="name_id_grid">
                 <p>{{ product.name }}</p>
                 <p class="prod-id9">ID: {{ product.product_id }}</p>
@@ -193,7 +197,12 @@
 
             <div class="product-btn-grid">
                 <p>${{ product.price }}.00</p>
-                <a onclick='popUp({{ product|tojson }})'>Add To Cart</a>
+
+                <!-- ✅ FIXED ADD‑TO‑CART BUTTON -->
+                <form action="{{ url_for('add_to_cart') }}" method="POST">
+                    <input type="hidden" name="product_id" value="{{ product.product_id }}">
+                    <button type="submit" class="add-btn">Add To Cart</button>
+                </form>
             </div>
 
             {% if session.get('role') == 'admin' or (session.get('role') == 'vendor' and product.vendor_id|int == session.get('user_id')|int) %}
@@ -211,7 +220,6 @@
     </div>
 
 </div>
-
 
 <div id="vendorChat">
     <div class="chat-title-grid">
@@ -263,6 +271,7 @@
 
         window.location.href = url;
     }
+
 </script>
 
 <script src="{{ url_for('static', filename='pop_up_chat.js')}}"></script>
