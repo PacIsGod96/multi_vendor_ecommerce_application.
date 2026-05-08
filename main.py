@@ -367,13 +367,11 @@ def update_product():
 
         for size in sizes:
             if size.strip():
-                conn.execute(text("INSERT INTO product_sizes (product_id, size) VALUES (:pid, :size)"), 
-                             {'pid': product_id, 'size': size})
+                conn.execute(text("INSERT INTO product_sizes (product_id, size) VALUES (:pid, :size)"), {'pid': product_id, 'size': size})
 
         for color in colors:
             if color.strip():
-                conn.execute(text("INSERT INTO product_colors (product_id, color) VALUES (:pid, :color)"), 
-                             {'pid': product_id, 'color': color})
+                conn.execute(text("INSERT INTO product_colors (product_id, color) VALUES (:pid, :color)"), {'pid': product_id, 'color': color})
 
         # Handle Images only if new ones were uploaded
         if any(img and img.filename for img in images):
@@ -382,8 +380,7 @@ def update_product():
                 if image and image.filename:
                     image_path = f"Images/{product_id}_{image.filename}"
                     image.save(os.path.join('static', image_path))
-                    conn.execute(text("INSERT INTO product_images (product_id, image_path) VALUES (:pid, :path)"), 
-                                 {'pid': product_id, 'path': image_path})
+                    conn.execute(text("INSERT INTO product_images (product_id, image_path) VALUES (:pid, :path)"), {'pid': product_id, 'path': image_path})
 
     return redirect(url_for('products_page'))
 
@@ -399,8 +396,7 @@ def delete_product():
     product_id = request.form.get('product_id')
 
     with engine.connect() as conn:
-        product = conn.execute(text("SELECT vendor FROM product WHERE product_id = :pid"), 
-                               {'pid': product_id}).mappings().fetchone()
+        product = conn.execute(text("SELECT vendor FROM product WHERE product_id = :pid"), {'pid': product_id}).mappings().fetchone()
 
     if not product:
         return "Product not found", 404
