@@ -426,83 +426,75 @@ def add_to_cart():
         return redirect(url_for('login_register'))
 
     product_id = request.form.get('product_id')
-    price = request.form.get('price')
     username = session['username']
+
     with engine.connect() as conn:
-        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+        user_res = conn.execute(
+            text("SELECT account_id FROM accounts WHERE username = :u"),
+            {"u": username}
+        ).mappings().fetchone()
+
     account_id = user_res['account_id']
 
-    sql = text("""
-        INSERT INTO orders (account_id, date, status, total_price)
-        VALUES (:uid, CURDATE(), 'pending', :price)
-    """)
+    # Check if product already exists in cart
     with engine.begin() as conn:
-        conn.execute(sql, {"uid": account_id, "price": price})
+        existing = conn.execute(
+            text("SELECT quantity FROM cart WHERE account_id = :uid AND product_id = :pid"),
+            {"uid": account_id, "pid": product_id}
+        ).mappings().fetchone()
 
-    return redirect(url_for('products_page'))
+        if existing:
+            conn.execute(
+                text("UPDATE cart SET quantity = quantity + 1 WHERE account_id = :uid AND product_id = :pid"),
+                {"uid": account_id, "pid": product_id}
+            )
+        else:
+            conn.execute(
+                text("INSERT INTO cart (account_id, product_id, quantity) VALUES (:uid, :pid, 1)"),
+                {"uid": account_id, "pid": product_id}
+            )
 
-@app.route('/cart', methods=['GET', 'POST']) 
+    return redirect(url_for('cart_page'))
+
+
+@app.route('/cart', methods=['GET'])
 def cart_page():
     if 'username' not in session:
         return redirect(url_for('login_register'))
     
     username = session['username']
+
     with engine.connect() as conn:
-        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
-    account_id = user_res['account_id'] if user_res else None
+        user_res = conn.execute(
+            text("SELECT account_id FROM accounts WHERE username = :u"),
+            {"u": username}
+        ).mappings().fetchone()
 
-    product_id = request.form.get('product_id')
-    role = session.get('role')
-
-    if not product_id:
-        return "Missing product_id", 400
-
-    if role not in ['admin', 'vendor']:
-        return "Unauthorized", 403
-    with engine.connect() as conn:
-        if role == 'vendor':
-            owner = conn.execute(text("""
-                SELECT vendor FROM product WHERE product_id = :pid
-            """), {'pid': product_id}).mappings().fetchone()
-
-            if not owner or owner['vendor'] != session.get('user_id'):
-                return "Not your product", 403
-
-    with engine.begin() as conn:
-        conn.execute(text("""
-            DELETE FROM product_images WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product_sizes WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product_colors WHERE product_id = :pid
-        """), {'pid': product_id})
-
-        conn.execute(text("""
-            DELETE FROM product WHERE product_id = :pid
-        """), {'pid': product_id})
-
-    return redirect(url_for('products_page'))
+    account_id = user_res['account_id']
 
     query = text("""
         SELECT 
             p.product_id,
             p.name,
             p.price,
+            p.vendor AS vendor_name,
+            pi.image_path,
+            c.cart_item_id,
             c.quantity
         FROM cart c
         JOIN product p ON c.product_id = p.product_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id
         WHERE c.account_id = :uid
     """)
 
-    cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
+    with engine.connect() as conn:
+        cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
 
     total = sum(item['price'] * item['quantity'] for item in cart_products)
 
     return render_template('cart.html', cart=cart_products, total=total)
+
+
 #-------------------------------------------------------End of backend for cart-----------------------------------------------------------
 
 #------------------------------------------------------Backend for orders------------------------------------------------------------
