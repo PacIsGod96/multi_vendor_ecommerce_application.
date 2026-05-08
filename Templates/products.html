@@ -5,6 +5,11 @@
 {% block content %}
 
 <h2 class="center-txt">Our Products</h2>
+<div class="searchbar">
+    <label>Search Product:</label>
+    <input type="text" id="product_search" placeholder="Search products..."><br>
+    <button onclick="searchProducts()">Search</button>
+</div>
 <div class="pop-up" id="pop-up">
     <button onclick="closePopup()" class="close-pop-up">X</button>
     <div class="pop-up-carosel" id="popup-images">
@@ -227,28 +232,37 @@
 </div>
 
 <script>
-    // 1. Your existing User ID variable
     window.currentUserId = {{ session.get('user_id') or 'null' }};
 
-    // 2. The Filter Logic
-    // This waits for you to pick a vendor and then reloads the page
     document.getElementById('vendor_sort').addEventListener('change', function() {
         const vendorId = this.value;
         if (vendorId) {
-            // Redirects to /products?vendor=5
             window.location.href = '/products?vendor=' + vendorId;
         } else {
-            // If they pick an empty option, just go back to all products
             window.location.href = '/products';
         }
     });
 
-    // 3. The Reset Button Logic
     function resetProducts() {
         window.location.href = '/products';
     }
 
-    // 4. Any other existing functions (popUp, editProduct, etc.) go here...
+    function searchProducts() {
+        const vendorId = document.getElementById('vendor_sort').value;
+        const searchText = document.getElementById('product_search').value;
+
+        let url = '/products?';
+
+        if (vendorId) {
+            url += 'vendor=' + vendorId + '&';
+        }
+
+        if (searchText) {
+            url += 'search=' + encodeURIComponent(searchText);
+        }
+
+        window.location.href = url;
+    }
 </script>
 
 <script src="{{ url_for('static', filename='pop_up_chat.js')}}"></script>
