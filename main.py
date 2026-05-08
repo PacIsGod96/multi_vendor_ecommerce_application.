@@ -150,6 +150,7 @@ def account_page():
 def products_page():
     # 1. Get the filter from the URL (if it exists)
     selected_vendor = request.args.get('vendor')
+    search_text = request.args.get('search')
 
     with engine.connect() as conn:
         # 2. Build the Product Query
@@ -163,26 +164,44 @@ def products_page():
             LEFT JOIN accounts a ON p.vendor = a.account_id
         """
         
+        filters = []
+        params = {}
+
         if selected_vendor:
-            product_sql += " WHERE p.vendor = :v_id"
-            rows = conn.execute(text(product_sql), {'v_id': selected_vendor}).mappings().all()
-            
-            # Optimization: Only fetch attributes for the filtered products
-            sizes_rows = conn.execute(text("""
-                SELECT ps.product_id, ps.size FROM product_sizes ps
-                JOIN product p ON ps.product_id = p.product_id
-                WHERE p.vendor = :v_id
-            """), {'v_id': selected_vendor}).mappings().all()
-            
-            colors_rows = conn.execute(text("""
-                SELECT pc.product_id, pc.color FROM product_colors pc
-                JOIN product p ON pc.product_id = p.product_id
-                WHERE p.vendor = :v_id
-            """), {'v_id': selected_vendor}).mappings().all()
-        else:
-            rows = conn.execute(text(product_sql)).mappings().all()
-            sizes_rows = conn.execute(text("SELECT product_id, size FROM product_sizes")).mappings().all()
-            colors_rows = conn.execute(text("SELECT product_id, color FROM product_colors")).mappings().all()
+            filters.append("p.vendor = :v_id")
+            params['v_id'] = selected_vendor
+
+        if search_text:
+            filters.append("p.name LIKE :search")
+            params['search'] = f"%{search_text}%"
+
+        if filters:
+            product_sql += " WHERE " + " AND ".join(filters)
+
+        rows = conn.execute(text(product_sql), params).mappings().all()
+
+        # Fetch sizes
+        sizes_sql = """
+            SELECT ps.product_id, ps.size
+            FROM product_sizes ps
+            JOIN product p ON ps.product_id = p.product_id
+        """
+
+        # Fetch colors
+        colors_sql = """
+            SELECT pc.product_id, pc.color
+            FROM product_colors pc
+            JOIN product p ON pc.product_id = p.product_id
+        """
+
+        if filters:
+            where_clause = " WHERE " + " AND ".join(filters)
+
+            sizes_sql += where_clause
+            colors_sql += where_clause
+
+        sizes_rows = conn.execute(text(sizes_sql), params).mappings().all()
+        colors_rows = conn.execute(text(colors_sql), params).mappings().all()
 
         # 3. Get all vendors for the dropdown menu
         vendors = conn.execute(
