@@ -178,6 +178,7 @@ main {
     padding: 5px;
     text-decoration: underline;
     font-size: 0.9em;
+    cursor: pointer;
 }
 
 .products-main-grid #filer-div {
@@ -1312,6 +1313,7 @@ textarea {
 
     .delete-btn {
         margin-top: -10px;
+    
     }
 }
 

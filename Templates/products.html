@@ -5,6 +5,11 @@
 {% block content %}
 
 <h2 class="center-txt">Our Products</h2>
+<div class="searchbar">
+    <label>Search Product:</label>
+    <input type="text" id="product_search" placeholder="Search products..."><br>
+    <button onclick="searchProducts()">Search</button>
+</div>
 <div class="pop-up" id="pop-up">
     <button onclick="closePopup()" class="close-pop-up">X</button>
 
@@ -65,7 +70,7 @@
     <form class="addform" action="/add_product" method="POST" enctype="multipart/form-data">
         <label for="name">Name of Product: *</label>
         <input name="name" type="text" required>
-        <label for="price">Price:</label>
+        <label for="price">Price: *</label>
         <input name="price" type="number" required>
         <div class="product-options">
 
@@ -95,8 +100,8 @@
         </div>
         <div class="upload-section">
             <p>Product Images:</p>
-            <label>Image 1:</label>
-            <input type="file" name="images" accept="image/*">
+            <label>Image 1: *</label>
+            <input type="file" name="images" accept="image/*" required>
             <label>Image 2:</label>
             <input type="file" name="images" accept="image/*">
             <label>Image 3:</label>
@@ -268,6 +273,24 @@
     function resetProducts() {
         window.location.href = '/products';
     }
+
+    function searchProducts() {
+        const vendorId = document.getElementById('vendor_sort').value;
+        const searchText = document.getElementById('product_search').value;
+
+        let url = '/products?';
+
+        if (vendorId) {
+            url += 'vendor=' + vendorId + '&';
+        }
+
+        if (searchText) {
+            url += 'search=' + encodeURIComponent(searchText);
+        }
+
+        window.location.href = url;
+    }
+
 </script>
 
 <script src="{{ url_for('static', filename='pop_up_chat.js')}}"></script>
