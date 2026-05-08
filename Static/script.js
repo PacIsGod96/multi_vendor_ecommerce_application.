@@ -43,53 +43,107 @@ function toggleEdit(id) {
 
 
 function popUp(product) {
+    console.log("POPUP PRODUCT:", product); // DEBUG
 
-    const popup = document.getElementById("pop-up");
-    popup.style.display = "block";
+    // Show popup
+    popUp = document.getElementById("pop-up");
+    popUp.style.display = "block";
 
-    // Basic info
-    document.getElementById("popup-name").innerText = product.name;
-    document.getElementById("popup-vendor").innerText = "By " + product.vendor;
-    document.getElementById("popup-price").innerText = "$" + (product.price || "16.99");
+    // Save product globally for review form
+    window.currentPopupProductId = product.product_id;
 
-    // 🔥 IMAGES CAROUSEL
-    const imgContainer = document.getElementById("popup-images");
-    imgContainer.innerHTML = "";
+    // Fill basic info
+    document.getElementById("popup-name").textContent = product.name;
+    document.getElementById("popup-vendor").textContent = "By " + product.vendor;
+    document.getElementById("popup-price").textContent = "$" + product.price;
+
+    // Set hidden product_id for add-to-cart form
+    document.getElementById("popup-product-id").value = product.product_id;
+
+    // -----------------------------
+    // FILL COLOR DROPDOWN
+    // -----------------------------
+    const colorSelect = document.getElementById("popup-color");
+    colorSelect.innerHTML = "";
+
+    if (product.colors && product.colors.length > 0) {
+        product.colors.forEach(color => {
+            const opt = document.createElement("option");
+            opt.value = color;
+            opt.textContent = color;
+            colorSelect.appendChild(opt);
+        });
+    } else {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No colors available";
+        colorSelect.appendChild(opt);
+    }
+
+    // -----------------------------
+    // FILL SIZE DROPDOWN
+    // -----------------------------
+    const sizeSelect = document.getElementById("popup-size");
+    sizeSelect.innerHTML = "";
+
+    if (product.sizes && product.sizes.length > 0) {
+        product.sizes.forEach(size => {
+            const opt = document.createElement("option");
+            opt.value = size;
+            opt.textContent = size;
+            sizeSelect.appendChild(opt);
+        });
+    } else {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No sizes available";
+        sizeSelect.appendChild(opt);
+    }
+
+    // -----------------------------
+    // FILL IMAGE CAROUSEL
+    // -----------------------------
+    const imgDiv = document.getElementById("popup-images");
+    imgDiv.innerHTML = "";
 
     if (product.images && product.images.length > 0) {
         product.images.forEach(img => {
             const image = document.createElement("img");
             image.src = "/static/" + img;
-            imgContainer.appendChild(image);
+            image.classList.add("popup-img");
+            imgDiv.appendChild(image);
         });
+    } else {
+        const image = document.createElement("img");
+        image.src = "/static/Images/default.png";
+        image.classList.add("popup-img");
+        imgDiv.appendChild(image);
     }
 
-    // 🔥 COLORS
-    const colorSelect = document.getElementById("popup-color");
-    colorSelect.innerHTML = "";
+    // -----------------------------
+    // SYNC DROPDOWNS → HIDDEN FIELDS
+    // -----------------------------
+    const hiddenColor = document.getElementById("popup-color-hidden");
+    const hiddenSize = document.getElementById("popup-size-hidden");
+    const hiddenQty = document.getElementById("popup-qty-hidden");
 
-    if (product.colors) {
-        product.colors.forEach(color => {
-            let option = document.createElement("option");
-            option.value = color;
-            option.text = color;
-            colorSelect.appendChild(option);
-        });
-    }
+    // Initialize hidden fields
+    hiddenColor.value = product.colors?.[0] || "";
+    hiddenSize.value = product.sizes?.[0] || "";
+    hiddenQty.value = 1;
 
-    // 🔥 SIZES
-    const sizeSelect = document.getElementById("popup-size");
-    sizeSelect.innerHTML = "";
+    // Sync on change
+    colorSelect.onchange = () => hiddenColor.value = colorSelect.value;
+    sizeSelect.onchange = () => hiddenSize.value = sizeSelect.value;
+    document.getElementById("popup-qty").oninput = () => {
+        hiddenQty.value = document.getElementById("popup-qty").value;
+    };
 
-    if (product.sizes) {
-        product.sizes.forEach(size => {
-            let option = document.createElement("option");
-            option.value = size;
-            option.text = size;
-            sizeSelect.appendChild(option);
-        });
-    }
+    // Reset visible quantity
+    document.getElementById("popup-qty").value = 1;
 }
+
+
 
 function closePopup() {
     document.getElementById("pop-up").style.display = "none";

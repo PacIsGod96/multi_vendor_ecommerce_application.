@@ -445,6 +445,10 @@ def add_to_cart():
         return redirect(url_for('login_register'))
 
     product_id = request.form.get('product_id')
+    size = request.form.get('size')
+    color = request.form.get('color')
+    quantity = int(request.form.get('quantity', 1))
+
     username = session['username']
 
     with engine.connect() as conn:
@@ -455,25 +459,37 @@ def add_to_cart():
 
     account_id = user_res['account_id']
 
-    # Check if product already exists in cart
     with engine.begin() as conn:
         existing = conn.execute(
-            text("SELECT quantity FROM cart WHERE account_id = :uid AND product_id = :pid"),
-            {"uid": account_id, "pid": product_id}
+            text("""
+                SELECT quantity FROM cart 
+                WHERE account_id = :uid AND product_id = :pid 
+                AND size = :size AND color = :color
+            """),
+            {"uid": account_id, "pid": product_id, "size": size, "color": color}
         ).mappings().fetchone()
 
         if existing:
             conn.execute(
-                text("UPDATE cart SET quantity = quantity + 1 WHERE account_id = :uid AND product_id = :pid"),
-                {"uid": account_id, "pid": product_id}
+                text("""
+                    UPDATE cart 
+                    SET quantity = quantity + :qty 
+                    WHERE account_id = :uid AND product_id = :pid 
+                    AND size = :size AND color = :color
+                """),
+                {"uid": account_id, "pid": product_id, "qty": quantity, "size": size, "color": color}
             )
         else:
             conn.execute(
-                text("INSERT INTO cart (account_id, product_id, quantity) VALUES (:uid, :pid, 1)"),
-                {"uid": account_id, "pid": product_id}
+                text("""
+                    INSERT INTO cart (account_id, product_id, size, color, quantity)
+                    VALUES (:uid, :pid, :size, :color, :qty)
+                """),
+                {"uid": account_id, "pid": product_id, "size": size, "color": color, "qty": quantity}
             )
 
     return redirect(url_for('cart_page'))
+
 
 
 @app.route('/cart', methods=['GET'])
