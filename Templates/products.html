@@ -7,35 +7,56 @@
 <h2 class="center-txt">Our Products</h2>
 <div class="pop-up" id="pop-up">
     <button onclick="closePopup()" class="close-pop-up">X</button>
+
+    <!-- IMAGE CAROUSEL -->
     <div class="pop-up-carosel" id="popup-images">
-        <!-- images injected -->
+        <!-- JS injects images here -->
     </div>
 
+    <!-- PRODUCT INFO + OPTIONS -->
     <div class="pop-up-grid">
+
+        <!-- NAME / VENDOR / PRICE -->
         <div>
-            <p id="popup-name"></p>
-            <p class='product-vender-name' id="popup-vendor"></p>
-            <p id="popup-price"></p>
+            <p id="popup-name" class="popup-title"></p>
+            <p id="popup-vendor" class="product-vendor-name"></p>
+            <p id="popup-price" class="popup-price"></p>
         </div>
 
+        <!-- COLOR SELECT -->
         <div>
             <label>Select Color:</label>
-            <select id="popup-color"></select>
+            <select id="popup-color" name="color"></select>
         </div>
 
+        <!-- SIZE SELECT -->
         <div>
             <label>Select Size:</label>
-            <select id="popup-size"></select>
+            <select id="popup-size" name="size"></select>
         </div>
 
+        <!-- QUANTITY -->
         <div>
             <label>Quantity:</label>
-            <input type="number" id="popup-qty" value="1" min="1">
+            <input type="number" id="popup-qty" name="quantity" value="1" min="1">
         </div>
     </div>
 
-    <!-- ❌ REMOVED BROKEN FORM HERE -->
+    <!-- ADD TO CART FORM -->
+    <form action="{{ url_for('add_to_cart') }}" method="POST" id="popup-cart-form" class="popup-cart-form">
+
+        <!-- Hidden product ID -->
+        <input type="hidden" name="product_id" id="popup-product-id">
+
+        <!-- Hidden size/color/qty (JS fills these automatically) -->
+        <input type="hidden" name="size" id="popup-size-hidden">
+        <input type="hidden" name="color" id="popup-color-hidden">
+        <input type="hidden" name="quantity" id="popup-qty-hidden">
+
+        <button type="submit" class="add-btn popup-add-btn">Add to Cart</button>
+    </form>
 </div>
+
 
 <div class="addProduct" id="addProduct">
     <button onclick="confirmProduct()" class="close-pop-up">X</button>
@@ -194,10 +215,7 @@
                 <p>${{ product.price }}.00</p>
 
                 <!-- ✅ FIXED ADD‑TO‑CART BUTTON -->
-                <form action="{{ url_for('add_to_cart') }}" method="POST">
-                    <input type="hidden" name="product_id" value="{{ product.product_id }}">
-                    <button type="submit" class="add-btn">Add To Cart</button>
-                </form>
+                <a onclick="popUp(PRODUCTS.find(p => p.product_id == {{ product.product_id }}))">Add To Cart</a>
             </div>
 
             {% if session.get('role') == 'admin' or (session.get('role') == 'vendor' and product.vendor_id|int == session.get('user_id')|int) %}
@@ -235,6 +253,7 @@
 </div>
 
 <script>
+    const PRODUCTS = {{ products_json|safe }};
     window.currentUserId = {{ session.get('user_id') or 'null' }};
 
     document.getElementById('vendor_sort').addEventListener('change', function() {
