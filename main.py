@@ -426,69 +426,75 @@ def add_to_cart():
         return redirect(url_for('login_register'))
 
     product_id = request.form.get('product_id')
-    price = request.form.get('price')
     username = session['username']
+
     with engine.connect() as conn:
-        user_res = conn.execute(text("SELECT account_id FROM accounts WHERE username = :u"), {"u": username}).mappings().fetchone()
+        user_res = conn.execute(
+            text("SELECT account_id FROM accounts WHERE username = :u"),
+            {"u": username}
+        ).mappings().fetchone()
+
     account_id = user_res['account_id']
 
-    sql = text("""
-        INSERT INTO orders (account_id, date, status, total_price)
-        VALUES (:uid, CURDATE(), 'pending', :price)
-    """)
+    # Check if product already exists in cart
     with engine.begin() as conn:
-        conn.execute(sql, {"uid": account_id, "price": price})
+        existing = conn.execute(
+            text("SELECT quantity FROM cart WHERE account_id = :uid AND product_id = :pid"),
+            {"uid": account_id, "pid": product_id}
+        ).mappings().fetchone()
 
-    return redirect(url_for('products_page'))
+        if existing:
+            conn.execute(
+                text("UPDATE cart SET quantity = quantity + 1 WHERE account_id = :uid AND product_id = :pid"),
+                {"uid": account_id, "pid": product_id}
+            )
+        else:
+            conn.execute(
+                text("INSERT INTO cart (account_id, product_id, quantity) VALUES (:uid, :pid, 1)"),
+                {"uid": account_id, "pid": product_id}
+            )
 
-@app.route('/cart', methods=['GET', 'POST'])
-def cart():
-    user_id = session.get('user_id')
-    if not user_id:
-        return redirect(url_for('login')) # Must be logged in to use cart
+    return redirect(url_for('cart_page'))
 
-    if request.method == 'POST':
-        product_id = request.form.get('product_id')
-        quantity = request.form.get('quantity', 1)
-        
-        # We check for product_id here to prevent the "Missing" error
-        if not product_id:
-            return "Error: No product selected", 400
 
-        with engine.begin() as conn:
-            # Check if item is already in cart to update quantity, or insert new
-            existing = conn.execute(text("""
-                SELECT cart_item_id FROM cart 
-                WHERE account_id = :aid AND product_id = :pid
-            """), {'aid': user_id, 'pid': product_id}).fetchone()
+@app.route('/cart', methods=['GET'])
+def cart_page():
+    if 'username' not in session:
+        return redirect(url_for('login_register'))
+    
+    username = session['username']
 
-            if existing:
-                conn.execute(text("""
-                    UPDATE cart SET quantity = quantity + :qty 
-                    WHERE account_id = :aid AND product_id = :pid
-                """), {'qty': quantity, 'aid': user_id, 'pid': product_id})
-            else:
-                conn.execute(text("""
-                    INSERT INTO cart (account_id, product_id, quantity)
-                    VALUES (:aid, :pid, :qty)
-                """), {'aid': user_id, 'pid': product_id, 'qty': quantity})
-
-        return redirect(url_for('cart'))
-
-    # GET Request: Show the user's cart
     with engine.connect() as conn:
-        cart_items = conn.execute(text("""
-            SELECT c.cart_item_id, c.quantity, p.name, p.price, pi.image_path
-            FROM cart c
-            JOIN product p ON c.product_id = p.product_id
-            LEFT JOIN (
-                SELECT product_id, MIN(image_path) as image_path 
-                FROM product_images GROUP BY product_id
-            ) pi ON p.product_id = pi.product_id
-            WHERE c.account_id = :aid
-        """), {'aid': user_id}).mappings().all()
+        user_res = conn.execute(
+            text("SELECT account_id FROM accounts WHERE username = :u"),
+            {"u": username}
+        ).mappings().fetchone()
 
-    return render_template('cart.html', cart=cart_items)
+    account_id = user_res['account_id']
+
+    query = text("""
+        SELECT 
+            p.product_id,
+            p.name,
+            p.price,
+            p.vendor AS vendor_name,
+            pi.image_path,
+            c.cart_item_id,
+            c.quantity
+        FROM cart c
+        JOIN product p ON c.product_id = p.product_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id
+        WHERE c.account_id = :uid
+    """)
+
+    with engine.connect() as conn:
+        cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
+
+    total = sum(item['price'] * item['quantity'] for item in cart_products)
+
+    return render_template('cart.html', cart=cart_products, total=total)
+
+
 #-------------------------------------------------------End of backend for cart-----------------------------------------------------------
 
 #------------------------------------------------------Backend for orders------------------------------------------------------------
