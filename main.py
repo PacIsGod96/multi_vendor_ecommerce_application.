@@ -148,13 +148,10 @@ def account_page():
 #--------------------------------------------------Backend for products-----------------------------------------------------------------------
 @app.route('/products', methods=['GET'])
 def products_page():
-    # 1. Get the filter from the URL (if it exists)
     selected_vendor = request.args.get('vendor')
     search_text = request.args.get('search')
 
     with engine.connect() as conn:
-        # 2. Build the Product Query
-        # We use a base query and append a WHERE clause if a filter is active
         product_sql = """
             SELECT 
                 p.product_id, p.name, p.vendor, p.price,
@@ -163,11 +160,15 @@ def products_page():
             LEFT JOIN product_images pi ON p.product_id = pi.product_id
             LEFT JOIN accounts a ON p.vendor = a.account_id
         """
-        
+
         filters = []
         params = {}
 
-        if selected_vendor:
+        # Vendors only see their own products, overrides dropdown
+        if session.get('role') == 'vendor':
+            filters.append("p.vendor = :session_vendor")
+            params['session_vendor'] = session.get('user_id')
+        elif selected_vendor:
             filters.append("p.vendor = :v_id")
             params['v_id'] = selected_vendor
 
@@ -180,14 +181,12 @@ def products_page():
 
         rows = conn.execute(text(product_sql), params).mappings().all()
 
-        # Fetch sizes
         sizes_sql = """
             SELECT ps.product_id, ps.size
             FROM product_sizes ps
             JOIN product p ON ps.product_id = p.product_id
         """
 
-        # Fetch colors
         colors_sql = """
             SELECT pc.product_id, pc.color
             FROM product_colors pc
@@ -196,19 +195,16 @@ def products_page():
 
         if filters:
             where_clause = " WHERE " + " AND ".join(filters)
-
             sizes_sql += where_clause
             colors_sql += where_clause
 
         sizes_rows = conn.execute(text(sizes_sql), params).mappings().all()
         colors_rows = conn.execute(text(colors_sql), params).mappings().all()
 
-        # 3. Get all vendors for the dropdown menu
         vendors = conn.execute(
             text("SELECT account_id, username FROM accounts WHERE role = 'vendor'")
         ).mappings().all()
 
-    # 4. Data Structuring (Organizing rows into a dictionary)
     products_dict = {}
 
     for row in rows:
@@ -238,14 +234,12 @@ def products_page():
         if pid in products_dict:
             products_dict[pid]["colors"].append(c["color"])
 
-    # 5. Final Formatting
     products = list(products_dict.values())
 
     for p in products:
         if not p["images"]:
             p["images"] = ["Images/default.png"]
 
-    # 6. Render with the new 'selected_vendor' variable
     return render_template(
         "products.html",
         products=products,
@@ -486,7 +480,17 @@ def add_to_cart():
 
     return redirect(url_for('cart_page'))
 
+@app.route('/remove_from_cart', methods=['POST'])
+def remove_from_cart():
+    if 'username' not in session:
+        return redirect(url_for('login_register'))
 
+    cart_item_id = request.form.get('cart_item_id')
+
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM cart WHERE cart_item_id = :id"), {'id': cart_item_id})
+
+    return redirect(url_for('cart_page'))
 
 @app.route('/cart', methods=['GET'])
 def cart_page():
@@ -501,6 +505,9 @@ def cart_page():
             {"u": username}
         ).mappings().fetchone()
 
+    if not user_res:
+        return redirect(url_for('login_register'))
+
     account_id = user_res['account_id']
 
     query = text("""
@@ -508,18 +515,23 @@ def cart_page():
             p.product_id,
             p.name,
             p.price,
-            p.vendor AS vendor_name,
-            pi.image_path,
             c.cart_item_id,
-            c.quantity
+            c.quantity,
+            c.size,
+            c.color,
+            (SELECT pi.image_path 
+             FROM product_images pi 
+             WHERE pi.product_id = p.product_id 
+             LIMIT 1) AS image_path
         FROM cart c
         JOIN product p ON c.product_id = p.product_id
-        LEFT JOIN product_images pi ON p.product_id = pi.product_id
         WHERE c.account_id = :uid
     """)
 
     with engine.connect() as conn:
         cart_products = conn.execute(query, {"uid": account_id}).mappings().fetchall()
+
+    cart_products = [dict(row) for row in cart_products]
 
     total = sum(item['price'] * item['quantity'] for item in cart_products)
 
