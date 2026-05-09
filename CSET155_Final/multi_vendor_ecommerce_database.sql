@@ -193,6 +193,7 @@ UPDATE product SET vendor = "Drip Market" WHERE product_id = 1;
 UPDATE product_images SET image_path = "DripPlazaTee3.png" WHERE image_id = 2;
 UPDATE product_images SET image_path = CONCAT('Images/', image_path) WHERE image_path NOT LIKE 'Images/%';
 ALTER TABLE product ADD COLUMN price INT NOT NULL;
+ALTER TABLE product MODIFY COLUMN vendor VARCHAR(255) NULL;
 
 SELECT * FROM product;
 SELECT * FROM product_colors;
@@ -217,6 +218,7 @@ DROP TABLE vendor_product;
 ALTER TABLE vendor_product
 DROP COLUMN warranty_period;
 
-
--- --Logan
-
+-- Rob 5/8 --
+DELETE FROM accounts WHERE username = 'collin';
+SELECT * FROM accounts;
+SELECT * FROM cart;
