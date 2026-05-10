@@ -538,17 +538,23 @@ def create_order():
     account_id = request.form.get('account_id')
     total_price = request.form.get('total_price')
 
-    sql = text("""
-        INSERT INTO orders (account_id, date, status, total_price)
-        VALUES (:account_id, CURDATE(), 'pending', :total_price)
-    """)
     with engine.begin() as conn:
-        conn.execute(sql, {
+        # Create order
+        conn.execute(text("""
+            INSERT INTO orders (account_id, date, status, total_price)
+            VALUES (:account_id, CURDATE(), 'pending', :total_price)
+        """), {
             "account_id": account_id,
             "total_price": total_price
         })
 
-    return jsonify({"status": "order_created"}), 200
+        # Clear cart
+        conn.execute(text("""
+            DELETE FROM cart WHERE account_id = :uid
+        """), {"uid": account_id})
+
+    return redirect(url_for('products_page'))
+
 
 @app.route('/admin_confirm_order', methods=['GET', 'POST'])
 def admin_confirm_order_page():
