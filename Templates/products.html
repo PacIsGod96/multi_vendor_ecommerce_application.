@@ -3,67 +3,52 @@
 {% block title %}Products Page{% endblock %}
 
 {% block content %}
+{% if session.get('role') in ['vendor', 'admin'] %}
+    <h2 class="center-txt">Your Products</h2>
+{% else %}
+    <h2 class="center-txt">Our Products</h2>
+{% endif %}
 
-<h2 class="center-txt">Our Products</h2>
-<div class="searchbar">
-    <label>Search Product:</label>
-    <input type="text" id="product_search" placeholder="Search products..."><br>
-    <button onclick="searchProducts()">Search</button>
-</div>
 <div class="pop-up" id="pop-up">
     <button onclick="closePopup()" class="close-pop-up">X</button>
 
-    <!-- IMAGE CAROUSEL -->
     <div class="pop-up-carosel" id="popup-images">
         <!-- JS injects images here -->
     </div>
 
-    <!-- PRODUCT INFO + OPTIONS -->
     <div class="pop-up-grid">
-
-        <!-- NAME / VENDOR / PRICE -->
         <div>
             <p id="popup-name" class="popup-title"></p>
             <p id="popup-vendor" class="product-vendor-name"></p>
             <p id="popup-price" class="popup-price"></p>
         </div>
 
-        <!-- COLOR SELECT -->
         <div>
             <label>Select Color:</label>
             <select id="popup-color" name="color"></select>
         </div>
 
-        <!-- SIZE SELECT -->
         <div>
             <label>Select Size:</label>
             <select id="popup-size" name="size"></select>
         </div>
 
-        <!-- QUANTITY -->
         <div>
             <label>Quantity:</label>
             <input type="number" id="popup-qty" name="quantity" value="1" min="1">
         </div>
     </div>
 
-    <!-- ADD TO CART FORM -->
     <form action="{{ url_for('add_to_cart') }}" method="POST" id="popup-cart-form" class="popup-cart-form">
-
-        <!-- Hidden product ID -->
         <input type="hidden" name="product_id" id="popup-product-id">
-
-        <!-- Hidden size/color/qty (JS fills these automatically) -->
         <input type="hidden" name="size" id="popup-size-hidden">
         <input type="hidden" name="color" id="popup-color-hidden">
         <input type="hidden" name="quantity" id="popup-qty-hidden">
-
         <button type="submit" class="add-btn popup-add-btn">Add to Cart</button>
     </form>
 </div>
 
-
-<div class="addProduct" id="addProduct">
+<div class="product-edit-panel" id="addProduct">
     <button onclick="confirmProduct()" class="close-pop-up">X</button>
     <h1 class="add-product-title">Add Product</h1>
     <p class="center-txt">* - Required</p><br>
@@ -73,7 +58,6 @@
         <label for="price">Price: *</label>
         <input name="price" type="number" required>
         <div class="product-options">
-
             <div class="sizes-section">
                 <p>Sizes:</p>
                 <label><input type="checkbox" name="sizes" value="S"> S</label><br>
@@ -98,19 +82,25 @@
                 </div>
             </div>
         </div>
-        <div class="upload-section">
+        <div class="upload-section center">
             <p>Product Images:</p>
-            <label>Image 1: *</label>
-            <input type="file" name="images" accept="image/*" required>
-            <label>Image 2:</label>
-            <input type="file" name="images" accept="image/*">
-            <label>Image 3:</label>
-            <input type="file" name="images" accept="image/*">
+            <div>
+                <label>Image 1: *</label>
+                <input type="file" name="images" accept="image/*" class="center" required><br>
+            </div>
+            <div>
+                <label>Image 2:</label>
+                <input type="file" name="images" accept="image/*" class="center"><br>
+            </div>
+            <div>
+                <label>Image 3:</label>
+                <input type="file" name="images" accept="image/*" class="center"><br>
+            </div>
         </div>
-        
+        <br>
         <label>Vendor: *</label>
         {% if session.get('role') == 'admin' %}
-            <select id="vendor" name="vendor" required>
+            <select id="vendor" name="vendor" required class="center">
                 <option value="" disabled selected>Select a vendor</option>
                 {% for vendor in vendors %}
                     <option value="{{ vendor.account_id }}">{{ vendor.username }}</option>
@@ -127,7 +117,7 @@
     </form>
 </div>
 
-<div class="addProduct" id="editProduct">
+<div class="product-edit-panel" id="editProduct">
     <button onclick="confirmEdit()" class="close-pop-up">X</button>
     <h1 class="add-product-title">Edit Product</h1>
     <p class="center-txt">Leave fields blank to keep current settings</p><br>
@@ -136,10 +126,10 @@
 
         <label for="edit_name">Name of Product:</label>
         <input name="name" id="edit_name" type="text" placeholder="Keep current name">
-        
+
         <label for="edit_price">Price ($):</label>
         <input name="price" id="edit_price" type="number" placeholder="Keep current price">
-        
+
         <div class="product-options">
             <div class="sizes-section">
                 <p>Sizes (Leave unchecked to keep current sizes):</p>
@@ -149,7 +139,7 @@
                 <label><input type="checkbox" name="sizes" value="XL" id="size_XL"> XL</label><br>
                 <label><input type="checkbox" name="sizes" value="XXL" id="size_XXL"> XXL</label>
             </div>
-            
+
             <div class="colors-section">
                 <p>Colors (Leave completely blank to keep current colors):</p>
                 <div>
@@ -166,7 +156,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="upload-section">
             <p>Product Images (Leave blank to keep current images):</p>
             <label>Image 1:</label>
@@ -188,55 +178,61 @@
     <div id="filter-div">
         <p class="filter_title">Filters:</p>
 
+        {% if session.get('role') != 'vendor' %}
         <label>Vendor:</label>
         <select id="vendor_sort" name="vendor_sort">
             <option value="">-- All Vendors --</option>
             {% for vendor in vendors %}
-                <option value="{{ vendor.account_id }}" 
-                    {% if selected_vendor|int == vendor.account_id|int %}selected{% endif %}>
+                <option value="{{ vendor.account_id }}"
+                    {% if selected_vendor and selected_vendor|int == vendor.account_id %}selected{% endif %}>
                     {{ vendor.username }}
                 </option>
             {% endfor %}
         </select>
         <br>
+        {% endif %}
+
         <button onclick="resetProducts()" id="product-reset">Reset</button><br>
         {% if session.get('role') in ['vendor', 'admin'] %}
             <a class="add-product-btn" onclick="addProduct()">Add Product</a>
         {% endif %}
     </div>
 
-    <div class="products">
-        {% for product in products %}
-        <div>
-            <img src="{{ url_for('static', filename=product.images[0]) }}" alt="product">
-            <div class="name_id_grid">
-                <p>{{ product.name }}</p>
-                <p class="prod-id9">ID: {{ product.product_id }}</p>
-            </div>
-
-            <p class='product-vendor-name' onclick="vendorChat(this)" data-userid="{{ product.vendor_id }}" data-vendorname="{{ product.vendor }}">By {{ product.vendor }}</p>
-
-            <div class="product-btn-grid">
-                <p>${{ product.price }}.00</p>
-
-                <!-- ✅ FIXED ADD‑TO‑CART BUTTON -->
-                <a onclick="popUp(PRODUCTS.find(p => p.product_id == {{ product.product_id }}))">Add To Cart</a>
-            </div>
-
-            {% if session.get('role') == 'admin' or (session.get('role') == 'vendor' and product.vendor_id|int == session.get('user_id')|int) %}
-            <div class="product-btn-grid">
-                <a class="edit-product-btn" onclick='editProduct({{ product|tojson }})'>Edit Product</a>
-                <form action="{{ url_for('delete_product') }}" method="POST" onsubmit="return confirm('Delete this product?');">
-                    <input type="hidden" name="product_id" value="{{ product.product_id }}">
-                    <button type="submit" class="delete-btn">Delete</button>
-                </form>
-            </div>
-            {% endif %}
-
+    <div>
+        <div class="searchbar">
+            <label>Search Product:</label>
+            <input type="text" id="product_search" placeholder="Search products...">
+            <button onclick="searchProducts()">Search</button>
         </div>
-        {% endfor %}
-    </div>
+        <div class="products">
+            {% for product in products %}
+            <div>
+                <img src="{{ url_for('static', filename=product.images[0]) }}" alt="product image" class="center">
+                <div class="name_id_grid">
+                    <p>{{ product.name }}</p>
+                    <p class="prod-id9">ID: {{ product.product_id }}</p>
+                </div>
 
+                <p class='product-vendor-name' onclick="vendorChat(this)" data-userid="{{ product.vendor_id }}" data-vendorname="{{ product.vendor }}">By {{ product.vendor }}</p>
+
+                <div class="product-btn-grid">
+                    <p>${{ product.price }}.00</p>
+                    <a onclick="popUp(PRODUCTS.find(p => p.product_id == {{ product.product_id }}))">Add To Cart</a>
+                </div>
+
+                {% if session.get('role') == 'admin' or (session.get('role') == 'vendor' and product.vendor_id|int == session.get('user_id')|int) %}
+                <div class="product-btn-grid">
+                    <a class="edit-product-btn" onclick='editProduct({{ product|tojson }})'>Edit Product</a>
+                    <form action="{{ url_for('delete_product') }}" method="POST" onsubmit="return confirm('Delete this product?');">
+                        <input type="hidden" name="product_id" value="{{ product.product_id }}">
+                        <button type="submit" class="delete-btn">Delete</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
 <div id="vendorChat">
@@ -244,13 +240,10 @@
         <h2>Chatting With:</h2>
         {% if session.get('username') %}
         <h2 id="chatVendorName">Select a vendor</h2>
-        {% endif %} 
+        {% endif %}
         <button class="chat-close-btn" onclick="closeChat()">X</button>
     </div>
-    <div class="chat_messages" id="chat_messages_pop_up">
-
-    </div>
-
+    <div class="chat_messages" id="chat_messages_pop_up"></div>
     <div class="chat_input_bar chat-input-popup">
         <input type="text" placeholder="Type a message...">
         <button type="button">Send</button>
@@ -261,21 +254,25 @@
     const PRODUCTS = {{ products_json|safe }};
     window.currentUserId = {{ session.get('user_id') or 'null' }};
 
-    document.getElementById('vendor_sort').addEventListener('change', function() {
-        const vendorId = this.value;
-        if (vendorId) {
-            window.location.href = '/products?vendor=' + vendorId;
-        } else {
-            window.location.href = '/products';
-        }
-    });
+    const vendorSort = document.getElementById('vendor_sort');
+    if (vendorSort) {
+        vendorSort.addEventListener('change', function() {
+            const vendorId = this.value;
+            if (vendorId) {
+                window.location.href = '/products?vendor=' + vendorId;
+            } else {
+                window.location.href = '/products';
+            }
+        });
+    }
 
     function resetProducts() {
         window.location.href = '/products';
     }
 
     function searchProducts() {
-        const vendorId = document.getElementById('vendor_sort').value;
+        const vendorSort = document.getElementById('vendor_sort');
+        const vendorId = vendorSort ? vendorSort.value : '';
         const searchText = document.getElementById('product_search').value;
 
         let url = '/products?';
@@ -290,7 +287,6 @@
 
         window.location.href = url;
     }
-
 </script>
 
 <script src="{{ url_for('static', filename='pop_up_chat.js')}}"></script>

@@ -251,17 +251,6 @@ function showAdmin() {
     fillAdminOrder();
 }
 
-function attachRemoveButtons() {
-    document.querySelectorAll(".remove-btn").forEach(btn => {
-        btn.addEventListener("click", function () {
-            this.parentElement.remove();
-            updateTotal();
-        });
-    });
-}
-
-attachRemoveButtons();
-
 function updateTotal() {
     let total = 0;
 
