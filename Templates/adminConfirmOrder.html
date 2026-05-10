@@ -6,16 +6,22 @@
 <h1 class="center-txt bold">Confirm Orders</h1>
 
 <div class="admin-container">
+
     <div class="pending-orders">
         <h2>Pending Orders</h2>
+
+        {% if orders|length == 0 %}
+            <p class="no-orders">No pending orders.</p>
+        {% endif %}
+
         <div class="order-list">
             {% for order in orders %}
-            <div class="order-item" 
-                 draggable="true" 
+            <div class="order-item"
+                 draggable="true"
                  id="order-{{ order.order_id }}"
-                 data-order-id="{{ order.order_id }}" 
+                 data-order-id="{{ order.order_id }}"
                  ondragstart="startDrag(event)">
-                 
+
                 <h3>Order #{{ order.order_id }}</h3>
                 <p><strong>Account ID:</strong> {{ order.account_id }}</p>
                 <p><strong>Date:</strong> {{ order.date }}</p>
@@ -26,37 +32,66 @@
         </div>
     </div>
 
-    <div class="confirm-box-admin" ondragover="allowDrop(event)" ondrop="dropOrder(event)">
+    <div class="confirm-box-admin"
+         ondragover="allowDrop(event)"
+         ondrop="dropOrder(event)"
+         id="confirmBox">
+
         <h2>Drop Here to Confirm</h2>
         <div id="confirmedOrders"></div>
     </div>
+
 </div>
 
 <script>
+let draggedOrder = null;
+
 function startDrag(ev) {
-    ev.dataTransfer.setData("orderId", ev.target.getAttribute("data-order-id"));
+    draggedOrder = ev.target;
+    ev.dataTransfer.setData("orderId", ev.target.dataset.orderId);
 }
 
 function allowDrop(ev) {
     ev.preventDefault();
+    document.getElementById("confirmBox").classList.add("drag-over");
 }
 
 function dropOrder(ev) {
     ev.preventDefault();
+    document.getElementById("confirmBox").classList.remove("drag-over");
+
     const orderId = ev.dataTransfer.getData("orderId");
-    
+
+    const element = document.getElementById(`order-${orderId}`);
+    if (!element || element.classList.contains("confirmed")) {
+        return;
+    }
+
     fetch('/admin_confirm_order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `order_id=${orderId}`
-    }).then(response => {
-        if (response.ok) {
-            const element = document.getElementById(`order-${orderId}`);
-            document.getElementById('confirmedOrders').appendChild(element);
-            element.setAttribute("draggable", "false");
-            element.style.opacity = "0.5";
+    })
+    .then(response => {
+        if (!response.ok) {
+            alert("Error confirming order.");
+            return;
         }
+
+        // Move visually
+        element.classList.add("confirmed");
+        element.setAttribute("draggable", "false");
+        element.style.opacity = "0.5";
+
+        document.getElementById("confirmedOrders").appendChild(element);
+    })
+    .catch(() => {
+        alert("Server error. Try again.");
     });
 }
+document.getElementById("confirmBox").addEventListener("dragleave", () => {
+    document.getElementById("confirmBox").classList.remove("drag-over");
+});
 </script>
+
 {% endblock %}
