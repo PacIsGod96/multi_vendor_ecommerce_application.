@@ -91,7 +91,7 @@ def account_page():
 
     if request.method == 'POST':
         sql = text("""
-            SELECT username, password, email_address, first_name, last_name, role
+            SELECT account_id, username, password, email_address, first_name, last_name, role
             FROM accounts
             WHERE username = :Username
         """)
@@ -134,7 +134,7 @@ def account_page():
         return redirect(url_for('account_page'))
     
     sql = text("""
-        SELECT username, password, email_address, first_name, last_name, role
+        SELECT account_id, username, password, email_address, first_name, last_name, role
         From accounts
         WHERE username = :Username
     """)
@@ -142,7 +142,20 @@ def account_page():
     with engine.connect() as conn:
         user = conn.execute(sql, {'Username': username}).mappings().fetchone()
 
-    return render_template('account.html', user=user)
+    orders_sql = text("""
+        SELECT order_id, date, status, total_price
+        FROM orders
+        WHERE account_id = :aid
+        ORDER BY date DESC
+    """)
+
+    with engine.connect() as conn:
+        orders = conn.execute(
+            orders_sql,
+            {'aid': user['account_id']}
+        ).mappings().fetchall()
+
+    return render_template('account.html', user=user, orders=orders)
 #-----------------------------------------------------------End of backend for login/register and account------------------------------------------
 
 #--------------------------------------------------Backend for products-----------------------------------------------------------------------
