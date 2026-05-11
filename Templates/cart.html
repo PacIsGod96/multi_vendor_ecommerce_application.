@@ -6,22 +6,30 @@
 
 <section id="cartPage" class="visible">
     <div class="cart-grid">
-        {% for item in cart %}
-        <div class="cart-item">
-            <div class="cart-info">
-                <h2 class="cart-name">{{ item.name }}</h2>
-
-                <img class="cart-img" src="{{ url_for('static', filename='Images/TripleT.png') }}" alt="product image">
-
-                <p class="cart-price">${{ item.price }}</p>
+        {% if cart %}
+            {% for item in cart %}
+            <div class="cart-item">
+                <div class="cart-info">
+                    <h2 class="cart-name">{{ item.name }}</h2>
+                    <img class="cart-img" src="{{ url_for('static', filename=item.image_path if item.image_path else 'Images/default.png') }}" alt="product image">
+                    <p class="cart-size">Size: {{ item.size if item.size else 'N/A' }}</p>
+                    <p class="cart-color">Color: {{ item.color if item.color else 'N/A' }}</p>
+                    <p class="cart-qty">Qty: {{ item.quantity }}</p>
+                    <p class="cart-price">${{ "%.2f"|format(item.price * item.quantity) }}</p>
+                </div>
+                <form action="/remove_from_cart" method="POST">
+                    <input type="hidden" name="cart_item_id" value="{{ item.cart_item_id }}">
+                    <button type="submit" class="remove-btn">Remove</button>
+                </form>
             </div>
-            <button class="remove-btn">Remove</button>
-        </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p class="center-txt">Your cart is empty.</p>
+        {% endif %}
     </div>
 
     <div class="cart-total-box center-txt">
-        <h2 class="cart-total" id="cartTotal">Total: ${{ total }}</h2>
+        <h2 class="cart-total" id="cartTotal">Total: ${{ "%.2f"|format(total) }}</h2>
         <button class="checkout-btn" onclick="showConfirm()">Confirm Order</button>
     </div>
 </section>
@@ -31,24 +39,35 @@
     <div class="confirm-box">
         <h3>Order Summary</h3>
         {% for item in cart %}
-        <p>{{ item.name }} — ${{ item.price }} × {{ item.quantity }}</p>
+        <p>{{ item.name }} — ${{ "%.2f"|format(item.price) }} × {{ item.quantity }} = ${{ "%.2f"|format(item.price * item.quantity) }}</p>
         {% endfor %}
-        <h3>Total: ${{ total }}</h3>
+        <h3>Total: ${{ "%.2f"|format(total) }}</h3>
     </div>
 
     <div class="confirm-box">
         <h3>Your Information</h3>
-        <form action="/submit_order" method="POST">
+
+        <!-- ✅ FIXED: Now posts to create_order -->
+        <form action="{{ url_for('create_order') }}" method="POST">
+
             <label>Full Name</label>
             <input type="text" name="name" placeholder="your name">
+
             <label>Email</label>
             <input type="email" name="email" placeholder="your email">
+
             <label>Address</label>
             <input type="text" name="address" placeholder="your address, City, ZIP">
+
             <label>Payment Method</label>
             <select name="payment">
                 <option value="card">Credit/Debit Card</option>
             </select>
+
+            <!-- ✅ REQUIRED HIDDEN FIELDS -->
+            <input type="hidden" name="account_id" value="{{ session['user_id'] }}">
+            <input type="hidden" name="total_price" value="{{ total }}">
+
             <button class="checkout-btn" type="submit">Submit Order</button>
         </form>
     </div>
