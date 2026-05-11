@@ -77,8 +77,6 @@ function dropOrder(ev) {
             alert("Error confirming order.");
             return;
         }
-
-        // Move visually
         element.classList.add("confirmed");
         element.setAttribute("draggable", "false");
         element.style.opacity = "0.5";
