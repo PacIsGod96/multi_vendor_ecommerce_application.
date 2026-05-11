@@ -1,0 +1,42 @@
+{% extends "template.html" %}
+
+{% block title %}Admin Feedback Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="center-txt bold">All Customer Feedback</h1>
+
+<div class="feedback-admin-container">
+
+    <!-- Product Reviews -->
+    <h2>Product Reviews</h2>
+    {% if reviews %}
+        {% for r in reviews %}
+            <div class="feedback-card">
+                <p><strong>User:</strong> {{ r.username }}</p>
+                <p><strong>Product ID:</strong> {{ r.product_id }}</p>
+                <p><strong>Stars:</strong> {{ r.stars }}</p>
+                <p><strong>Description:</strong> {{ r.description }}</p>
+                <p><strong>Date:</strong> {{ r.date }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No reviews found.</p>
+    {% endif %}
+
+    <!-- Refund Requests -->
+    <h2>Refund Requests</h2>
+    {% if refunds %}
+        {% for f in refunds %}
+            <div class="feedback-card">
+                <p><strong>User:</strong> {{ f.username }}</p>
+                <p><strong>Description:</strong> {{ f.description }}</p>
+                <p><strong>Status:</strong> {{ f.status }}</p>
+                <p><strong>Date:</strong> {{ f.date }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No refund requests.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

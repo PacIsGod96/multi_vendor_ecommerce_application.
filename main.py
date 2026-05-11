@@ -789,6 +789,35 @@ def feedback_page():
 #         return redirect(url_for('feedback_page'))
 
     return render_template('feedback.html')
+
+@app.route('/admin_view_feedback')
+def admin_view_feedback():
+    if session.get('role') != 'admin':
+        return "Unauthorized", 403
+
+    with engine.connect() as conn:
+        reviews = conn.execute(text("""
+            SELECT r.*, a.username 
+            FROM review r
+            JOIN accounts a ON r.account_id = a.account_id
+        """)).mappings().all()
+
+        refunds = conn.execute(text("""
+            SELECT ret.*, a.username
+            FROM returns ret
+            JOIN accounts a ON ret.account_id = a.account_id
+        """)).mappings().all()
+
+    # No complaints table — keep empty
+    complaints = []
+
+    return render_template(
+        'adminViewFeedback.html',
+        reviews=reviews,
+        refunds=refunds,
+        complaints=complaints
+    )
+
 #-------------------------------------------------End of backend for feedback-----------------------------------------------------------------
 
 if __name__ == "__main__":

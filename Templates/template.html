@@ -35,6 +35,11 @@
             <li id="chat-link"><a href="/vendor_chat">Chat</a></li>
             {% endif %}
             <li><a href="/account">Account</a></li>
+
+            {% if session.get('role') == 'admin' %}
+    <a href="{{ url_for('admin_view_feedback') }}">View Feedback</a>
+{% endif %}
+
         </ul>
     </nav>
     {% endif %}
