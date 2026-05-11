@@ -120,12 +120,14 @@ main {
 }
 
 .products {
-    display: grid;
-    grid-template-columns: 22.5% 22.5% 22.5% 22.5%;
-    grid-gap: 10%;
+    display: flex;
+    justify-content: space-evenly;
+    max-width: 100%;
+    flex-wrap: wrap;
 }
 
 .products div {
+    display: block;
     border: 2px solid #391361;
     border-radius: 8px;
     padding: 20px;
@@ -655,6 +657,44 @@ footer {
     cursor: pointer;
     background-color: white;
     color: #391361;
+}
+
+.orders_section {
+    width: 70%;
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.orders_section h2 {
+    color: #391361;
+    margin-bottom: 20px;
+}
+
+.orders_table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid #391361;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.orders_table th {
+    background-color: #391361;
+    color: white;
+    padding: 12px;
+    text-align: center;
+}
+
+.orders_table td {
+    padding: 12px;
+    text-align: center;
+    border-top: 1px solid #ccc;
+}
+
+.orders_table tr:nth-child(even) {
+    background-color: #f7f4fb;
 }
 
 /* Admin Complaint */
