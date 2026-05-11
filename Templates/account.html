@@ -48,5 +48,29 @@
             <button type="submit">Save Changes</button>
         </div>
     </form>
+    <div class="orders_section">
+        <h2>Previous Orders</h2>
+
+        {% if orders %}
+            <table class="orders_table">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                </tr>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.order_id }}</td>
+                    <td>{{ order.date }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>${{ order.total_price }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No previous orders.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

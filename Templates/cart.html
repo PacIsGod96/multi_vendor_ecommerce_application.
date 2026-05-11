@@ -46,17 +46,28 @@
 
     <div class="confirm-box">
         <h3>Your Information</h3>
-        <form action="/submit_order" method="POST">
+
+        <!-- ✅ FIXED: Now posts to create_order -->
+        <form action="{{ url_for('create_order') }}" method="POST">
+
             <label>Full Name</label>
             <input type="text" name="name" placeholder="your name">
+
             <label>Email</label>
             <input type="email" name="email" placeholder="your email">
+
             <label>Address</label>
             <input type="text" name="address" placeholder="your address, City, ZIP">
+
             <label>Payment Method</label>
             <select name="payment">
                 <option value="card">Credit/Debit Card</option>
             </select>
+
+            <!-- ✅ REQUIRED HIDDEN FIELDS -->
+            <input type="hidden" name="account_id" value="{{ session['user_id'] }}">
+            <input type="hidden" name="total_price" value="{{ total }}">
+
             <button class="checkout-btn" type="submit">Submit Order</button>
         </form>
     </div>
